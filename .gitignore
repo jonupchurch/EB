@@ -1,0 +1,45 @@
+# Speckit files (.specify/, .claude/) and Resources/ are intentionally
+# NOT ignored — they're part of the repo's process narrative. The one
+# exception is settings.local.json, Claude Code's own convention for
+# machine-local permissions/paths that were never meant to be shared.
+.claude/settings.local.json
+
+# dependencies
+/node_modules
+/.pnpm-store
+
+# next.js
+/.next/
+/out/
+
+# production build
+/build
+
+# testing
+/coverage
+/playwright-report/
+/test-results/
+/blob-report/
+
+# env files (never commit secrets)
+.env
+.env*.local
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# logs
+npm-debug.log*
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+.vercel
+.env*
