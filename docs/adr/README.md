@@ -10,5 +10,6 @@ Format: lightweight [MADR](https://adr.github.io/madr/). Status is one of
 
 | # | Decision | Status |
 |---|---|---|
+| [0001](0001-postgres-persistence.md) | PostgreSQL for persistence, local instance for development | Accepted |
 
 New decision? Copy `0000-template.md`.

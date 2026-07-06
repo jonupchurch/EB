@@ -25,3 +25,10 @@ the product and its architecture evolved.
   one of the three env files tracked in the repo); fixed a `.gitignore`
   ordering bug that would have re-ignored `.env.example` after its own
   negation rule.
+- `docs: decide on PostgreSQL for persistence` — accepted
+  [ADR-0001](docs/adr/0001-postgres-persistence.md): PostgreSQL, running
+  locally for development; hosted/production Postgres is still an open
+  decision. Updated `.env.example`, the constitution's Technology
+  Constraints, and `status.md` to match. No real credentials in any
+  tracked file — the local instance's password lives only in the
+  gitignored `.env.local`.

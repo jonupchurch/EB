@@ -22,7 +22,7 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 
 ## What's happened so far
 
-- **2026-07-06** — Scaffolded the Spec Kit project structure (`.specify/`, `.claude/skills/`), drafted the constitution (v1.0.0, not yet ratified), and added the initial docs/config scaffold (ADR template, `future-work.md`, `non-functional.md`, TypeScript/ESLint/Vitest/Playwright config, CI workflow). See `CHANGELOG.md` for the exact commits.
+- **2026-07-06** — Scaffolded the Spec Kit project structure (`.specify/`, `.claude/skills/`), drafted the constitution (v1.0.0, not yet ratified), and added the initial docs/config scaffold (ADR template, `future-work.md`, `non-functional.md`, TypeScript/ESLint/Vitest/Playwright config, CI workflow). Also decided the database: PostgreSQL, running locally for now ([ADR-0001](docs/adr/0001-postgres-persistence.md)) — hosted/production Postgres is still an open decision. See `CHANGELOG.md` for the exact commits.
 
 ## Next steps
 

@@ -25,7 +25,7 @@ A small print business (T-shirts, mugs, wood designs, and more) needs a real sto
 
 ## Tech stack
 
-Next.js (App Router) · TypeScript (strict) · Tailwind CSS · Zod · Vitest · Playwright · GitHub Actions · Vercel. Payment provider (Stripe, tentative) and auth provider (Google SSO, implementation TBD) are open ADRs — see the constitution's Sync Impact Report.
+Next.js (App Router) · TypeScript (strict) · Tailwind CSS · Zod · PostgreSQL (local for now — [ADR-0001](docs/adr/0001-postgres-persistence.md)) · Vitest · Playwright · GitHub Actions · Vercel. Payment provider (Stripe, tentative) and auth provider (Google SSO, implementation TBD) are open ADRs — see the constitution's Sync Impact Report.
 
 ## Run locally
 
@@ -33,7 +33,7 @@ There's no runnable app yet — that's the first feature to be specified and bui
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in real values as providers are chosen
+cp .env.example .env.local   # fill in real values — a local Postgres instance and its DATABASE_URL, at minimum
 npm run dev
 ```
 

@@ -12,7 +12,10 @@ Added principles:
   - VI. Legible History
 Added sections: Technology Constraints, Development Workflow, Governance
 Removed sections: none
-Other changes: none — this is the project's first ratified constitution.
+Other changes: pre-ratification update 2026-07-06 — database engine
+  decided (PostgreSQL, local instance for now; see
+  docs/adr/0001-postgres-persistence.md) and folded into Technology
+  Constraints below. Still v1.0.0 draft, not yet ratified.
 Templates requiring updates:
   ⚠ .specify/templates/plan-template.md — verify no hardcoded principle
     names before first /speckit-plan run.
@@ -23,6 +26,8 @@ Follow-up TODOs:
     the checkout ADR is written.
   - Confirm the Google SSO implementation (e.g. Clerk vs. Auth.js) as an
     ADR during Feature 000 / first planning pass.
+  - Choose a hosted/production Postgres provider when deployment is
+    actually being set up (docs/adr/0001-postgres-persistence.md).
 -->
 
 # Printing Website Constitution
@@ -174,9 +179,12 @@ shadcn/ui only as a restyled base — components MUST NOT ship at default
 appearance (see Principle III). Persistence is a real, durable database
 from day one (products, carts/orders, fulfillment state) — unlike a
 stateless-by-default MVP, durable storage is the expected baseline
-here, not a deviation requiring justification; the specific
-database/ORM is an ADR made during planning (e.g. via the Vercel
-Marketplace). Payments: Stripe, tentatively — to be confirmed (and the
+here, not a deviation requiring justification. Database: PostgreSQL, a
+local instance for development (see
+`docs/adr/0001-postgres-persistence.md`) — a hosted/production provider
+(e.g. via the Vercel Marketplace) and the query layer/ORM are both
+still open decisions, each owed their own ADR when chosen. Payments:
+Stripe, tentatively — to be confirmed (and the
 confirmation recorded as an ADR) before the checkout feature's
 implementation closes; server-side only, every webhook signature
 verified before use (Principle II). Identity: Google SSO gates the
