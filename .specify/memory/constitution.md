@@ -16,8 +16,12 @@ Other changes: pre-ratification updates 2026-07-06 — database engine
   decided (PostgreSQL, local instance for now; see
   docs/adr/0001-postgres-persistence.md) and query layer decided
   (Drizzle ORM over Prisma; see docs/adr/0002-drizzle-orm.md), both
-  folded into Technology Constraints below. Still v1.0.0 draft, not yet
-  ratified.
+  folded into Technology Constraints below. Plan-all-before-implement
+  (Development Workflow) confirmed as a firm rule rather than a
+  tentative carryover; Principle VI (Legible History) tightened to
+  require CHANGELOG.md/status.md updates and a commit+push after every
+  unit of work, not just "significant" pushes. Still v1.0.0 draft, not
+  yet ratified.
 Templates requiring updates:
   ⚠ .specify/templates/plan-template.md — verify no hardcoded principle
     names before first /speckit-plan run.
@@ -163,15 +167,20 @@ keeps CI fast and free while still exercising the real failure paths
 Commits MUST use Conventional Commits prefixes (`feat`, `fix`, `docs`,
 `test`, `chore`, `refactor`) and each commit MUST be one logical,
 atomic, self-contained change, mapped to a `tasks.md` item where
-practical. `CHANGELOG.md` at the repo root MUST be updated alongside
-every significant push — a feature, a constitution amendment, a
-meaningful resource or doc addition — summarizing what shipped in
-human-readable terms and linking the relevant commit(s). Trivial pushes
-(typo fixes, formatting) don't need an entry.
+practical — committing mid-task is fine where it makes sense, rather
+than batching everything into one commit at the end. After each unit of
+work, `CHANGELOG.md` and `status.md` MUST be updated to match (and any
+ADR the work triggered MUST be written or updated), and the result
+committed and pushed — not left staged for later. Trivial changes
+(typo fixes, formatting) don't need a `CHANGELOG.md`/`status.md` entry,
+but still get committed.
 
 Rationale: legible history is how a solo maintainer safely picks this
 back up later, and how a non-technical stakeholder (the business owner)
-can be shown, in plain language, what changed and why.
+can be shown, in plain language, what changed and why. Pushing after
+each unit of work — not batching — keeps `status.md` and
+`CHANGELOG.md` trustworthy as a live read of where things stand, not a
+document that's perpetually behind the actual code.
 
 ## Technology Constraints
 
@@ -205,12 +214,14 @@ is generated. Decisions with a real tradeoff are presented as 2–3
 options with pros/cons and a recommendation, rather than silently
 decided. Given the MVP scope defined in Principle IV, tasks are
 sequenced into demoable increments and sized realistically during
-`/speckit-plan` and `/speckit-tasks`. Following a pattern carried over
-from a prior project, once the MVP feature list exists, each feature
-SHOULD be fully specified, planned, and tasked before any is
-implemented — with infrastructure-only setup (e.g. the initial project
-scaffold) built immediately as a stated exception — unless the project
-owner explicitly asks to implement something sooner.
+`/speckit-plan` and `/speckit-tasks`. Confirmed as this project's own
+workflow (carried over from, and validated on, a prior project): once
+the MVP feature list exists, every feature MUST be fully specified,
+planned, and tasked before implementation begins on any of them —
+infrastructure-only setup (e.g. the initial project scaffold) is built
+immediately as a stated exception, since it isn't product surface —
+unless the project owner explicitly asks to implement something
+sooner.
 
 ## Governance
 
