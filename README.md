@@ -21,25 +21,22 @@ A small print business (T-shirts, mugs, wood designs, and more) needs a real sto
 
 ## Project status
 
-**Not yet built.** The constitution is drafted (v1.0.0) but not yet ratified, and no product features have been specified, planned, or implemented. See [`status.md`](status.md) for the current build state and [`CHANGELOG.md`](CHANGELOG.md) for the full history of what's landed so far (scaffolding only, at this point).
+**Scaffolded, no product features yet.** The Next.js app runs, connects to PostgreSQL, and passes its full quality bar (typecheck/lint/test/build/e2e), but no catalog, cart, checkout, or admin queue exists. The constitution is drafted (v1.0.0) but not yet ratified. See [`status.md`](status.md) for the current build state and [`CHANGELOG.md`](CHANGELOG.md) for the full history.
 
 ## Tech stack
 
-Next.js (App Router) · TypeScript (strict) · Tailwind CSS · Zod · PostgreSQL (local for now — [ADR-0001](docs/adr/0001-postgres-persistence.md)) · Vitest · Playwright · GitHub Actions · Vercel. Payment provider (Stripe, tentative) and auth provider (Google SSO, implementation TBD) are open ADRs — see the constitution's Sync Impact Report.
+Next.js (App Router) · TypeScript (strict) · Tailwind CSS · Zod · PostgreSQL via Drizzle ORM (local for now — [ADR-0001](docs/adr/0001-postgres-persistence.md), [ADR-0002](docs/adr/0002-drizzle-orm.md)) · Vitest · Playwright · GitHub Actions · Vercel. Payment provider (Stripe, tentative) and auth provider (Google SSO, implementation TBD) are open ADRs — see the constitution's Sync Impact Report.
 
 ## Run locally
-
-There's no runnable app yet — that's the first feature to be specified and built (project setup: `package.json`, the Next.js app itself, dependencies). Once it exists, this will be:
 
 ```bash
 npm install
 cp .env.example .env.local   # fill in real values — a local Postgres instance and its DATABASE_URL, at minimum
+npm run db:migrate           # applies committed migrations from ./drizzle
 npm run dev
 ```
 
 ## Testing & quality
-
-Once the app exists:
 
 ```bash
 npm run typecheck && npm run lint && npm run test   # unit
@@ -50,7 +47,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs typecheck, lint, unit tests, an
 
 ## Architecture decisions
 
-Every non-trivial tradeoff gets a short ADR in [`docs/adr/`](docs/adr) — captured before or alongside the code that implements it. None accepted yet; see the index at [`docs/adr/README.md`](docs/adr/README.md).
+Every non-trivial tradeoff gets a short ADR in [`docs/adr/`](docs/adr) — captured before or alongside the code that implements it. Two accepted so far (database engine, ORM choice); see the index at [`docs/adr/README.md`](docs/adr/README.md).
 
 ## Payments & privacy
 

@@ -32,3 +32,21 @@ the product and its architecture evolved.
   Constraints, and `status.md` to match. No real credentials in any
   tracked file — the local instance's password lives only in the
   gitignored `.env.local`.
+- `feat: scaffold the Next.js app` — added `package.json` (Next.js 16,
+  React 19, TypeScript, Tailwind v4, Zod), `next.config.ts`,
+  `postcss.config.mjs`, `src/app/{layout,page,globals.css}` (plain,
+  undecorated baseline — no branding exists yet), and a `public/` folder
+  for future static assets. Accepted
+  [ADR-0002](docs/adr/0002-drizzle-orm.md): Drizzle ORM over Prisma for
+  the query/migration layer, with an explicit note on migration
+  discipline (commit generated SQL, review before applying, never
+  hand-edit the schema outside a migration) and a flagged follow-up on
+  serverless-safe connection pooling once a hosted Postgres provider is
+  chosen. Added `src/db/{schema,index}.ts`, `drizzle.config.ts`, an
+  initial migration (`drizzle/0000_true_lake.sql`, applied to the local
+  database), and a `/api/health` route that proves the connection
+  works end-to-end. Added a Vitest DB-connection test and a Playwright
+  smoke test (home page + `/api/health`). Pinned `eslint` to `^9.39.4`
+  after ESLint 10 crashed under `eslint-config-next@16.2.10`'s bundled
+  `eslint-plugin-react` (a rule-context API it doesn't support yet).
+  `typecheck`, `lint`, `test`, `build`, and `test:e2e` all pass.

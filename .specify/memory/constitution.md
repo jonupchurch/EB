@@ -12,10 +12,12 @@ Added principles:
   - VI. Legible History
 Added sections: Technology Constraints, Development Workflow, Governance
 Removed sections: none
-Other changes: pre-ratification update 2026-07-06 — database engine
+Other changes: pre-ratification updates 2026-07-06 — database engine
   decided (PostgreSQL, local instance for now; see
-  docs/adr/0001-postgres-persistence.md) and folded into Technology
-  Constraints below. Still v1.0.0 draft, not yet ratified.
+  docs/adr/0001-postgres-persistence.md) and query layer decided
+  (Drizzle ORM over Prisma; see docs/adr/0002-drizzle-orm.md), both
+  folded into Technology Constraints below. Still v1.0.0 draft, not yet
+  ratified.
 Templates requiring updates:
   ⚠ .specify/templates/plan-template.md — verify no hardcoded principle
     names before first /speckit-plan run.
@@ -180,10 +182,12 @@ appearance (see Principle III). Persistence is a real, durable database
 from day one (products, carts/orders, fulfillment state) — unlike a
 stateless-by-default MVP, durable storage is the expected baseline
 here, not a deviation requiring justification. Database: PostgreSQL, a
-local instance for development (see
-`docs/adr/0001-postgres-persistence.md`) — a hosted/production provider
-(e.g. via the Vercel Marketplace) and the query layer/ORM are both
-still open decisions, each owed their own ADR when chosen. Payments:
+local instance for development, queried through Drizzle (see
+`docs/adr/0001-postgres-persistence.md`,
+`docs/adr/0002-drizzle-orm.md`) — a hosted/production provider (e.g.
+via the Vercel Marketplace) is still an open decision, owed its own ADR
+when chosen, including a serverless-appropriate connection strategy
+(see ADR-0002 Consequences). Payments:
 Stripe, tentatively — to be confirmed (and the
 confirmation recorded as an ADR) before the checkout feature's
 implementation closes; server-side only, every webhook signature
