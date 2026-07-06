@@ -1,0 +1,41 @@
+# Future Work
+
+Ideas that surface during a feature's build but are out of that
+feature's (or the MVP's) frozen scope. Per the constitution's Scope
+Discipline principle, a new idea found mid-build gets logged here
+instead of implemented on the spot — this is the list to work from once
+the core MVP is complete, not a queue to pull from early.
+
+Each entry: what it is, which feature it came up during, and why it was
+deferred rather than folded in. Resolved items get struck through with a
+"Resolved {date}" note rather than deleted, so the reasoning stays
+visible.
+
+## Live product customizer / upload-your-own-design tool
+
+Surfaced during: initial constitution drafting, 2026-07-06.
+
+Customers uploading their own image/text and previewing it live on a
+product (shirt, mug, wood sign, etc.) before ordering — the natural
+next step beyond a fixed catalog.
+
+Deferred rather than built now: the MVP (constitution Principle IV) is
+scoped to a fixed catalog with variant selection only, so one real
+checkout path ships first. This is the most likely first post-MVP
+feature, but needs its own spec (upload validation/limits, print-file
+generation requirements, preview rendering approach) once the MVP is
+live.
+
+## AI-assisted design feature
+
+Surfaced during: initial constitution drafting, 2026-07-06.
+
+An AI-assisted capability — e.g. helping a customer turn a prompt or
+rough idea into a design, or an AI support chat — was raised as a
+possibility given the stack includes the Vercel AI SDK/Gateway, but no
+specific feature was defined.
+
+Deferred rather than built now: no AI feature is in the MVP scope. If
+one is built later, constitution Principle II already requires it to
+follow the same server-side-only, swappable-provider,
+Zod-validated-output discipline as every other integration.
