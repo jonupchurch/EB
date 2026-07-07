@@ -294,3 +294,14 @@ the product and its architecture evolved.
   photos are small and Vercel Functions now accept 100MB bodies).
   Constitution bumped to v1.0.2 (patch): Vercel Blob recorded as the
   file-storage choice in Technology Constraints, alongside Neon.
+- `spec: catalog & browsing` (`specs/002-catalog-browsing/`) — ran
+  `/speckit-specify` for feature 2. Two prioritized user stories (P1
+  browse by category, P2 view a product and configure it to see an
+  accurate price), 10 functional requirements, 5 measurable success
+  criteria, zero `[NEEDS CLARIFICATION]` markers. Explicitly excludes
+  processing options that need the still-deferred customer
+  design-upload flow from customer selection (FR-006) rather than
+  offering a broken choice — consistent with feature 1's own scoping.
+  Zero new persisted entities: this feature reads feature 1's
+  `Product`/`Category`/option tables, filtered to `status = active`.
+  Quality checklist passed clean on the first pass. Next: `/speckit-plan`.

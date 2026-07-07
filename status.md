@@ -15,8 +15,8 @@ begins — everything else follows the customer-facing flow order.
 | # | Feature | Status | One-liner |
 |---|---|---|---|
 | — | Project setup | ✅ Scaffolded | Next.js app, TypeScript/Tailwind/Zod, PostgreSQL via Drizzle, a `/api/health` check, and CI all wired up and passing. |
-| 1 | Admin: product management | 📐 Planned | Auth.js/Google-SSO-gated admin shell + Products list + Product Editor (variant/pricing config) — enough to load real products. |
-| 2 | Catalog & browsing | Not started | A fixed catalog of ready-made products (shirts, mugs, wood designs) with size/color/material variants, reading real data seeded via #1. |
+| 1 | Admin: product management | 🧩 Tasked | Auth.js/Google-SSO-gated admin shell + Products list + Product Editor (variant/pricing config, 1..n images) — enough to load real products. |
+| 2 | Catalog & browsing | 📝 Specified | A public storefront (browse by category + product detail with live pricing) reading real Active products seeded via #1. No cart yet. |
 | 3 | Cart & checkout | Not started | Add to cart (with promotions/discounts), tax + shipping calculated, pay via a server-validated, webhook-verified PayPal flow (Stripe is a planned fast-follow). |
 | 4 | Order confirmation | Not started | Customer sees confirmation; the order is recorded once the payment webhook is verified. |
 | 5 | Admin: orders, discounts, shipping & fees | Not started | Order queue/detail (fulfillment), promotion management, and shipping/tax settings — sequenced with/after checkout since they're not useful until real orders exist. |
@@ -51,7 +51,10 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 
 - **2026-07-07** — Caught a real gap before starting feature 2: feature 1's data model had no product-image field at all, despite Vercel Blob having been provisioned specifically for that purpose. Amended feature 1 (`spec.md`, `data-model.md`, `research.md`, `contracts/actions.md`, `plan.md`, `tasks.md`) to add 1..n images per product — attach/reorder/remove in the Product Editor, uploaded server-side via a Server Action (`docs/adr/0009-vercel-blob-for-product-images.md`), duplicated independently alongside the rest of a product's configuration. `tasks.md` grew from 31 to 37 tasks with clean renumbering (nothing had been implemented yet, so no cost to reordering). Constitution bumped to v1.0.2 (patch) to record Vercel Blob as the file-storage choice alongside Neon.
 
+- **2026-07-07** — Ran `/speckit-specify` for feature 2: [specs/002-catalog-browsing/spec.md](specs/002-catalog-browsing/spec.md). Two prioritized user stories (P1 browse the catalog by category, P2 view a product and configure it to see an accurate price), 10 functional requirements, 5 measurable success criteria. No `[NEEDS CLARIFICATION]` markers — the one real ambiguity (what happens to processing options that need the still-deferred customer design-upload flow) already had an informed default from feature 1's own scoping: exclude them from customer selection (FR-006) rather than offer a broken choice. Zero new persisted entities — this feature is a read-only layer over feature 1's data, filtered to Active products only. Quality checklist passed clean on the first pass.
+
 ## Next steps
 
-1. Move to `/speckit-specify` for feature 2 (catalog & browsing), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.
-2. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.
+1. Run `/speckit-plan` for feature 2 (catalog & browsing).
+2. Once planned and tasked, move to `/speckit-specify` for feature 3 (cart & checkout), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.
+3. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.
