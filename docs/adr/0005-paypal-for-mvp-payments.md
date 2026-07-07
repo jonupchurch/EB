@@ -50,3 +50,25 @@ checkout feature is actually planned, not fixed here. Tax-API provider
 choice (still open, see the constitution's follow-up TODOs) should no
 longer assume a Stripe-Tax-first default now that Stripe isn't the
 MVP processor.
+
+**Update (2026-07-07):** `Resources/wireframes/Checkout &amp;
+Confirmation.html` (added after this ADR) shows a "Credit / debit
+card — via Stripe" option as the default/highlighted payment method,
+with PayPal only as a secondary "redirects to PayPal" radio option —
+the opposite emphasis from this decision. Confirmed with Jon this is
+stale wireframe content, not a reconsideration: the checkout feature
+should build **PayPal only** for MVP, including PayPal's own
+direct-card-entry option (PayPal supports paying by card as a guest,
+without a redirect or an account) rather than a separate
+Stripe-powered card form. Whoever specs the checkout feature should
+treat the wireframe's card-entry *layout* (inline fields, not a
+redirect) as useful reference, but re-wire it to PayPal, not Stripe.
+
+Also noted from the same file: the express-checkout PayPal button uses
+PayPal's real brand colors (navy `#003087` "Pay" / light blue
+`#009cde` "Pal" on yellow `#F7BE38`) — "Pal" measures 1.82:1 against
+the yellow, failing WCAG badly, but this is PayPal's own official
+button design, not a color this project controls. Implementation note:
+use PayPal's actual Buttons SDK/embed rather than hand-recreating this
+button with custom CSS, so it stays correct if PayPal's own brand/
+legal requirements change.

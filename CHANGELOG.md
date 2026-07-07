@@ -179,3 +179,17 @@ the product and its architecture evolved.
   upload, conflicting with the deferred custom-design boundary — needs
   resolving (cut or restrict to plain custom text) before the catalog
   is finalized.
+- `docs: review checkout & confirmation wireframe, fix stale Stripe
+  reference` — added `Resources/wireframes/Checkout & Confirmation.html`
+  (desktop + mobile checkout, and order confirmation). Confirms the
+  promo-code field lives on checkout (as assumed earlier), and the
+  full pricing breakdown/personalization/confirmation-timeline all
+  match decisions already made. Found the Payment section defaulted to
+  "Credit / debit card — via Stripe" with PayPal as a secondary
+  redirect option — contradicting ADR-0005. Confirmed with Jon this is
+  stale content, not a reconsideration: updated ADR-0005 with a note
+  that checkout should build PayPal-only for MVP (including PayPal's
+  own direct-card-entry option), and that the express PayPal button's
+  low-contrast "Pal" text is PayPal's own brand color, not something to
+  redesign — use their official Buttons SDK rather than hand-rolling
+  it. Updated `docs/future-work.md` and `status.md` to match.

@@ -77,6 +77,15 @@ before a single real order can be taken. Stripe support is a real,
 planned fast-follow, not a rejected idea — revisit once PayPal
 checkout is live.
 
+Clarified (2026-07-07): `Resources/wireframes/Checkout &amp;
+Confirmation.html` (added after ADR-0005) showed a "Credit / debit
+card — via Stripe" option as the *default* payment method, with PayPal
+as a secondary redirect — confirmed with Jon this is stale wireframe
+content, not a reconsideration. The checkout feature should build
+PayPal only for MVP (including PayPal's own direct-card-entry option
+for guest checkout, not a redirect-only flow) — see ADR-0005's Update
+section for the full note.
+
 ## Real privacy policy & terms of service content
 
 Surfaced during: adding `Resources/shared/privacy.md` and
