@@ -62,6 +62,8 @@ live-recomputed cart.
 | `customerEmail` | text | From the PayPal payer — needed by the later order-confirmation feature |
 | `paypalOrderId` | text, unique | PayPal's own Orders API order ID, the reconciliation key for the webhook |
 | `paidAt` | timestamp, nullable | Set only once the webhook is verified (FR-012) |
+| `confirmationToken` | text, unique | Random (not sequential/guessable), generated at creation — the public identifier feature 4's confirmation page and email use; `id` itself is never exposed in a customer-facing URL |
+| `confirmationEmailSentAt` | timestamp, nullable | Set by feature 4 once its one-time confirmation email is sent; unset here, this feature never sends it |
 | `createdAt` | timestamp | Set when the order is placed (before payment completes) |
 
 ## Order Line Item

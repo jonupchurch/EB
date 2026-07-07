@@ -399,3 +399,22 @@ the product and its architecture evolved.
   core entity, just a small "email already sent" flag on feature 3's
   Order. Quality checklist passed clean on the first pass. Next:
   `/speckit-plan`.
+- `docs: amend cart & checkout for confirmation token and email tracking`
+  — while planning feature 4, added `confirmationToken` (a dedicated
+  random public identifier — this project's IDs are otherwise
+  sequential, and FR-012 requires the confirmation URL be
+  unguessable) and `confirmationEmailSentAt` (for a one-time-send
+  guarantee) to feature 3's `orders` table. Zero cost — feature 3
+  isn't implemented yet.
+- `plan: order confirmation` (`specs/004-order-confirmation/`) — ran
+  `/speckit-plan`. One new ADR owed: `docs/adr/0015-resend-for-transactional-email.md`
+  (confirmed with Jon before drafting the spec). The brief
+  "confirming payment" window is handled with simple client polling
+  (2s interval, 60s timeout) rather than push/WebSockets — judged
+  unjustified complexity for a state that resolves in seconds for the
+  overwhelming majority of orders. No new database table — this
+  feature reads feature 3's `orders`/`order_items` plus the two
+  columns added above. Added `contracts/actions.md`
+  (`getOrderConfirmation`, the internal `sendConfirmationEmail`) and
+  `quickstart.md`. Added `RESEND_API_KEY` to `.env.example`/`.env.local`.
+  Constitution Check passed with no violations.

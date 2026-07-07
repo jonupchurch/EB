@@ -32,7 +32,7 @@
 
 **Purpose**: Schema, shared checkout infrastructure, and every external-integration boundary — needed by all three user stories.
 
-- [ ] T007 Extend `src/db/schema.ts` with `promotions` (one flexible table per `data-model.md`), `orders` (`status` enum `placed`\|`paid`, pricing breakdown fields, `paypalOrderId` unique), and `order_items` (frozen snapshot fields plus a `selectedOptionsSnapshot` JSON column) — the one deliberate JSON exception in this project's schema, per `research.md`
+- [ ] T007 Extend `src/db/schema.ts` with `promotions` (one flexible table per `data-model.md`), `orders` (`status` enum `placed`\|`paid`, pricing breakdown fields, `paypalOrderId` unique, `confirmationToken` unique text, `confirmationEmailSentAt` nullable timestamp — the latter two exist for feature 4's sake, unused by this feature), and `order_items` (frozen snapshot fields plus a `selectedOptionsSnapshot` JSON column) — the one deliberate JSON exception in this project's schema, per `research.md`
 - [ ] T008 Generate the Drizzle migration for the new tables (`npm run db:generate`), review the output, and commit it as `drizzle/0002_*.sql` — depends on T007
 - [ ] T009 Apply the migration locally (`npm run db:migrate`) and confirm the new tables exist — depends on T008
 - [ ] T010 [P] Implement `src/lib/checkout/rate-limit.ts` — rate limiter for checkout's mutating endpoints, tuned for public traffic (distinct from admin's two-trusted-users tuning), per Principle II
@@ -98,7 +98,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T025 [US3] Implement `createOrderAndPayment(shippingAddress, shippingMethod, promoCode?)` Server Action in `src/app/(storefront)/checkout/actions.ts` — recomputes the total fresh (never trusts `getCheckoutSummary`'s earlier result, FR-011); creates a `placed` Order plus its frozen `order_items` snapshot (`data-model.md`); creates a PayPal order via `paypal.ts` (T016) for that exact total; returns the approval URL — depends on T012–T016, T022 (same file)
+- [ ] T025 [US3] Implement `createOrderAndPayment(shippingAddress, shippingMethod, promoCode?)` Server Action in `src/app/(storefront)/checkout/actions.ts` — recomputes the total fresh (never trusts `getCheckoutSummary`'s earlier result, FR-011); creates a `placed` Order (with a random, non-sequential `confirmationToken` — feature 4's URL identifier) plus its frozen `order_items` snapshot (`data-model.md`); creates a PayPal order via `paypal.ts` (T016) for that exact total; returns the approval URL — depends on T012–T016, T022 (same file)
 - [ ] T026 [US3] Implement `src/app/api/webhooks/paypal/route.ts` — verifies the signature via `paypal.ts` (T016); on a verified capture-completed event, sets the matching order's `status` to `paid` and `paidAt`, idempotently (FR-012, FR-013, FR-015) — depends on T016
 - [ ] T027 [US3] Wire the checkout page's payment step — redirect to PayPal's approval URL (T025), handle the return redirect, and show a minimal acknowledgment (the real confirmation experience is a separate, later feature) — per `Resources/wireframes/Checkout & Confirmation.html` — depends on T023, T025
 
