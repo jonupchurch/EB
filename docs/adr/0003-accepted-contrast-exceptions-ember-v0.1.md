@@ -1,8 +1,12 @@
-# ADR-0003: Accept specific contrast exceptions in the Ember Design System v0.1 mockup
+# ADR-0003: Accept specific contrast exceptions in early design mockups/wireframes
 
 - **Status:** Accepted
-- **Date:** 2026-07-07
+- **Date:** 2026-07-07 (updated same day — see Update below)
 - **Deciders:** Jon Upchurch
+
+_Filename predates the broader scope below (originally just the Ember
+Design System file) — kept as-is so existing links/CHANGELOG entries
+don't break._
 
 ## Context
 
@@ -54,5 +58,28 @@ either gray becomes the site's actual "muted text" Tailwind token used
 for real body copy, not just a placeholder label or empty-state dash
 (see `docs/adr/0001` era memory notes / the brand accessibility review
 for the darker-shade recommendation in that specific case). This ADR
-covers only the three pairings listed above, not a blanket exemption
-for reusing these colors anywhere.
+covers only the specific pairings listed (here and in the Update
+below), not a blanket exemption for reusing these colors anywhere.
+
+## Update (2026-07-07): Resources/wireframes/Store Pages.html
+
+Reviewed the storefront wireframes (browse/product/cart, desktop +
+mobile) with the same method. Three more real failures, same
+underlying pattern:
+
+- Breadcrumb "/" separators: `#C4BBAD` on `#F7F3EA` — 1.71:1 (likely
+  decorative/exempt — the breadcrumb labels themselves have fine
+  contrast, only the divider glyph is low).
+- Selected-filter checkmark icon: `#2E2A26` on teal `#0F6C68` — 2.28:1.
+- **The "Category" filter section label, per-category item counts, and
+  sort caret**: `#9A9088` on `#F7F3EA` — 2.82:1.
+
+The third one matters more than the earlier exceptions: this is the
+same gray failing for the *third* independent time (logo tagline, the
+Ember file, now here), and this time it's on permanent, load-bearing
+UI copy (a filter section header, every category's item count) rather
+than a placeholder/empty-state edge case. Deliberately still accepted
+as an exception here (not fixed) — but if this token shows up failing
+a fourth time, or anywhere even more central (e.g. actual product
+descriptions, prices), that's the point to stop accepting and just
+darken the token instead of re-litigating this each time.

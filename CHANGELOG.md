@@ -103,3 +103,16 @@ the product and its architecture evolved.
   none are load-bearing to completing an order, so they're accepted
   as-is per Principle III's target-not-gate accessibility stance rather
   than fixed now. Updated the ADR index and `status.md`.
+- `docs: review storefront wireframes` — added
+  `Resources/wireframes/Store Pages.html` (browse/product/cart,
+  desktop + mobile). Extended
+  [ADR-0003](docs/adr/0003-accepted-contrast-exceptions-ember-v0.1.md)
+  (retitled to cover mockups/wireframes generally, same file) with
+  three more accepted contrast exceptions — one, a muted-gray filter
+  label and per-category item counts, is the same color failing for
+  the third independent time, now on permanent UI rather than a
+  placeholder, and is called out as the one to fix for real if it
+  recurs again. Confirmed the wireframe's "Custom" nav placeholder is
+  intentional (noted in `docs/future-work.md`, not a scope violation)
+  and that the cart's missing promo-code field isn't a gap — that
+  likely belongs to a not-yet-designed checkout-step wireframe.

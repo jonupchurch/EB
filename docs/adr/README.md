@@ -12,6 +12,6 @@ Format: lightweight [MADR](https://adr.github.io/madr/). Status is one of
 |---|---|---|
 | [0001](0001-postgres-persistence.md) | PostgreSQL for persistence, local instance for development | Accepted |
 | [0002](0002-drizzle-orm.md) | Drizzle ORM (over Prisma) for the query/migration layer | Accepted |
-| [0003](0003-accepted-contrast-exceptions-ember-v0.1.md) | Accept specific contrast exceptions in the Ember Design System v0.1 mockup | Accepted |
+| [0003](0003-accepted-contrast-exceptions-ember-v0.1.md) | Accept specific contrast exceptions in early design mockups/wireframes | Accepted |
 
 New decision? Copy `0000-template.md`.

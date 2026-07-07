@@ -26,6 +26,14 @@ feature, but needs its own spec (upload validation/limits, print-file
 generation requirements, preview rendering approach) once the MVP is
 live.
 
+Note (2026-07-07): the storefront wireframes
+(`Resources/wireframes/Store Pages.html`) already show a "Custom" link
+in the header nav on every page. That's intentional as a placeholder
+for this future feature, not a sign this belongs in MVP — leave the
+nav link in the wireframe as-is; whoever specs the catalog/nav feature
+should decide whether it ships hidden/disabled or omitted entirely
+until this feature actually exists.
+
 ## AI-assisted design feature
 
 Surfaced during: initial constitution drafting, 2026-07-06.
