@@ -257,7 +257,11 @@ the product and its architecture evolved.
   env-file pattern that `vercel link` had re-broken (the negation must
   stay last to win). Recorded as [ADR-0008](docs/adr/0008-neon-for-hosted-postgres.md)
   — closes the constitution's "choose hosted Postgres provider"
-  follow-up (constitution v1.0.0 → v1.0.1, patch). Vercel Blob is
-  provisioned but not yet fully connected: no `BLOB_READ_WRITE_TOKEN`
-  exists yet (only `BLOB_STORE_ID`/`BLOB_WEBHOOK_PUBLIC_KEY`) — needs a
-  dashboard-side fix before it can be verified the same way.
+  follow-up (constitution v1.0.0 → v1.0.1, patch). Vercel Blob was
+  provisioned but not fully connected at first: no `BLOB_READ_WRITE_TOKEN`
+  existed (only `BLOB_STORE_ID`/`BLOB_WEBHOOK_PUBLIC_KEY`). Fixed via
+  `vercel integration-resource disconnect`/`connect` (scoped to
+  Production/Preview), which provisioned the token correctly. Verified
+  with a real upload/fetch/delete round-trip against the live store.
+  Both pieces of real infrastructure are now confirmed working
+  end-to-end.
