@@ -193,3 +193,10 @@ the product and its architecture evolved.
   low-contrast "Pal" text is PayPal's own brand color, not something to
   redesign — use their official Buttons SDK rather than hand-rolling
   it. Updated `docs/future-work.md` and `status.md` to match.
+- `docs: decide on Auth.js for Google SSO (ADR-0006)` — Auth.js over
+  Clerk for the admin queue's Google SSO: the actual requirement is
+  narrow (exactly two known accounts gating one admin area), so a full
+  managed auth product was more than needed. Updated the constitution's
+  Technology Constraints, the ADR index, and the Sync Impact Report's
+  follow-up TODOs (Google SSO item resolved). Added `AUTH_SECRET` to
+  `.env.example`/`.env.local`.

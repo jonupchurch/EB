@@ -43,15 +43,15 @@ Other changes: pre-ratification updates 2026-07-06 — database engine
   IV's exclusion stands, clarified in place); flagged the Recipe
   Board's "handwriting-to-engrave" variant as an actual customer photo
   upload, conflicting with the deferred custom-design boundary — see
-  docs/future-work.md. Still v1.0.0 draft, not yet ratified.
+  docs/future-work.md. 2026-07-07: accepted ADR-0006 (Auth.js for
+  Google SSO, over Clerk) — Technology Constraints updated. Still
+  v1.0.0 draft, not yet ratified.
 Templates requiring updates:
   ⚠ .specify/templates/plan-template.md — verify no hardcoded principle
     names before first /speckit-plan run.
   ⚠ .specify/templates/spec-template.md — verify compatibility.
   ⚠ .specify/templates/tasks-template.md — verify compatibility.
 Follow-up TODOs:
-  - Confirm the Google SSO implementation (e.g. Clerk vs. Auth.js) as an
-    ADR during Feature 000 / first planning pass.
   - Choose a hosted/production Postgres provider when deployment is
     actually being set up (docs/adr/0001-postgres-persistence.md).
   - Choose a tax-calculation API provider (e.g. TaxJar, Avalara, or
@@ -254,8 +254,9 @@ computed via a tax-calculation API (provider TBD, ADR owed) — never
 hand-rolled tax-rate logic. Shipping: both a flat rate and a
 calculated/carrier-rate option are in scope; the carrier-rate provider
 (if used) is an ADR made during planning. Identity: Google SSO gates
-the admin queue; the specific implementation (e.g. Clerk vs. Auth.js)
-is an ADR made during planning, not fixed here. No LLM/AI provider is
+the admin queue, implemented via **Auth.js** (see
+`docs/adr/0006-authjs-for-google-sso.md`), restricted to the two
+authorized accounts. No LLM/AI provider is
 part of the MVP; if one is added later (per Principle IV's future-work
 list) it MUST follow Principle II's swappable-provider/Zod-validation
 rule.
