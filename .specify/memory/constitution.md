@@ -29,29 +29,32 @@ Other changes: pre-ratification updates 2026-07-06 — database engine
   expanded to include promotions/discounts, tax-calculation-API-driven
   sales tax, and calculated/carrier-rate shipping (previously listed as
   out of scope) — the product/customizer decision itself was confirmed
-  to stay out of MVP as already written. Technology Constraints updated
-  to note the payment provider is a genuine Stripe-vs-PayPal open
-  choice (not just "tentatively Stripe"), plus new tax-API and
-  shipping-carrier-API ADR obligations. Still v1.0.0 draft, not yet
-  ratified.
+  to stay out of MVP as already written. 2026-07-07, following review
+  of Resources/wireframes/Admin Screens.html: accepted ADR-0004
+  (darken the muted-gray text token) and ADR-0005 (PayPal for MVP
+  payments, Stripe deferred to fast-follow) — Technology Constraints
+  updated accordingly; also clarified that the admin product editor's
+  processing-type pricing config is MVP scope even though the
+  customer-facing custom-design flow itself remains deferred (see
+  docs/future-work.md). Still v1.0.0 draft, not yet ratified.
 Templates requiring updates:
   ⚠ .specify/templates/plan-template.md — verify no hardcoded principle
     names before first /speckit-plan run.
   ⚠ .specify/templates/spec-template.md — verify compatibility.
   ⚠ .specify/templates/tasks-template.md — verify compatibility.
 Follow-up TODOs:
-  - Confirm Stripe vs. PayPal (or both) as the payment provider before
-    the checkout ADR is written — genuinely undecided, not just pending
-    confirmation of a default.
   - Confirm the Google SSO implementation (e.g. Clerk vs. Auth.js) as an
     ADR during Feature 000 / first planning pass.
   - Choose a hosted/production Postgres provider when deployment is
     actually being set up (docs/adr/0001-postgres-persistence.md).
-  - Choose a tax-calculation API provider (e.g. Stripe Tax, TaxJar,
-    Avalara) — ADR owed during the checkout feature's planning.
+  - Choose a tax-calculation API provider (e.g. TaxJar, Avalara, or
+    PayPal's own tax tools) — ADR owed during the checkout feature's
+    planning.
   - Choose a calculated/carrier-rate shipping provider (e.g. Shippo,
     EasyPost) if the flat-rate-only option isn't sufficient for MVP —
     ADR owed during the cart/checkout feature's planning.
+  - Scope and plan the Stripe fast-follow integration once PayPal MVP
+    checkout is live (docs/adr/0005-paypal-for-mvp-payments.md).
 -->
 
 # Printing Website Constitution
@@ -231,13 +234,10 @@ local instance for development, queried through Drizzle (see
 `docs/adr/0002-drizzle-orm.md`) — a hosted/production provider (e.g.
 via the Vercel Marketplace) is still an open decision, owed its own ADR
 when chosen, including a serverless-appropriate connection strategy
-(see ADR-0002 Consequences). Payments:
-Stripe, tentatively — to be confirmed (and the
-confirmation recorded as an ADR) before the checkout feature's
-implementation closes; server-side only, every webhook signature
-verified before use (Principle II). Payment provider is genuinely
-undecided between Stripe and PayPal — both remain candidates until
-confirmed, and the confirmation still owes an ADR. Tax: sales tax is
+(see ADR-0002 Consequences). Payments: **PayPal** for MVP (see
+`docs/adr/0005-paypal-for-mvp-payments.md`) — Stripe is deferred to a
+fast-follow integration, not abandoned; server-side only, every
+webhook signature verified before use (Principle II). Tax: sales tax is
 computed via a tax-calculation API (provider TBD, ADR owed) — never
 hand-rolled tax-rate logic. Shipping: both a flat rate and a
 calculated/carrier-rate option are in scope; the carrier-rate provider

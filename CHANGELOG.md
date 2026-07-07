@@ -144,3 +144,14 @@ the product and its architecture evolved.
   build as MVP scope (just data entry) — only the customer-facing
   storefront upload/ordering flow stays deferred to the fast-follow
   feature.
+- `docs: decide on PayPal for MVP payments (ADR-0005)` — the admin
+  wireframe's payment settings panel showed both Stripe and PayPal as
+  simultaneously connectable, prompting a real decision rather than
+  leaving it open: PayPal is the MVP payment processor
+  ([ADR-0005](docs/adr/0005-paypal-for-mvp-payments.md)); Stripe is a
+  planned fast-follow (`docs/future-work.md`), not multi-processor
+  support at launch. Updated the constitution's Technology Constraints
+  and Sync Impact Report, `docs/non-functional.md`'s Payments &
+  compliance section, and swapped the `STRIPE_*` placeholder vars in
+  `.env.example`/`.env.local` for `PAYPAL_*` ones (no real secrets
+  involved — both were empty).

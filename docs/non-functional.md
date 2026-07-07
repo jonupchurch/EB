@@ -60,12 +60,10 @@ truncation or a stuck cart.
 
 ## Payments & compliance
 
-- TBD: payment provider — genuinely undecided between Stripe and
-  PayPal (not just pending confirmation of a default). PCI scope
-  should be minimized by using whichever provider's hosted/embedded
-  checkout rather than handling raw card data directly, but this is a
-  decision to make explicitly (ADR) once the provider is chosen, not an
-  assumption baked in here.
+- **PayPal** for MVP ([ADR-0005](adr/0005-paypal-for-mvp-payments.md))
+  — Stripe deferred to a fast-follow integration. PCI scope should be
+  minimized by using PayPal's hosted/embedded checkout rather than
+  handling raw card data directly.
 
 ## Promotions, tax & shipping
 

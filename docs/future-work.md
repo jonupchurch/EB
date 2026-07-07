@@ -50,6 +50,22 @@ catalog/product data model (whenever it's specced) should account for
 this distinction: processing-type pricing is MVP-scope schema, the
 customer-facing upload/ordering flow is not.
 
+## Stripe as a second payment processor
+
+Surfaced during: reviewing `Resources/wireframes/Admin Screens.html`,
+2026-07-07.
+
+The admin wireframe's payment settings panel showed both Stripe and
+PayPal as connectable processors, which prompted deciding the payment
+provider question for real: PayPal for MVP
+([ADR-0005](adr/0005-paypal-for-mvp-payments.md)), Stripe deferred.
+
+Deferred rather than built now: supporting two processors at launch
+means two webhook-verification paths and twice the integration surface
+before a single real order can be taken. Stripe support is a real,
+planned fast-follow, not a rejected idea — revisit once PayPal
+checkout is live.
+
 ## AI-assisted design feature
 
 Surfaced during: initial constitution drafting, 2026-07-06.
