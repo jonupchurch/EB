@@ -517,3 +517,13 @@ the product and its architecture evolved.
   `DATABASE_URL`/`BLOB_READ_WRITE_TOKEN`/Auth.js env vars present,
   mirroring ADR-0008's build-time gotcha check. Next:
   `/speckit-implement` for feature 2.
+- `chore: configure Auth.js env vars in Vercel Production/Preview` —
+  the auto-deploy from feature 1's push surfaced a real gap: sign-in
+  500'd in Production because `AUTH_SECRET`/`GOOGLE_CLIENT_ID`/
+  `GOOGLE_CLIENT_SECRET`/`ADMIN_ALLOWED_EMAILS` only ever existed in
+  local `.env.local`. Added all four to both Production and Preview
+  (a fresh, distinct `AUTH_SECRET` per environment; Google OAuth
+  credentials and the allow-list reused as-is) and redeployed.
+  Confirmed live: `/api/auth/signin` now returns 200 and shows only
+  "Sign in with Google" — the test-only Credentials provider correctly
+  stays inactive outside Playwright's own e2e run.
