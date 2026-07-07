@@ -17,5 +17,6 @@ Format: lightweight [MADR](https://adr.github.io/madr/). Status is one of
 | [0005](0005-paypal-for-mvp-payments.md) | PayPal for MVP payments, Stripe deferred to a fast-follow | Accepted |
 | [0006](0006-authjs-for-google-sso.md) | Auth.js for Google SSO (admin queue) | Accepted |
 | [0008](0008-neon-for-hosted-postgres.md) | Neon for hosted/production Postgres | Accepted |
+| [0009](0009-vercel-blob-for-product-images.md) | Vercel Blob for product images, uploaded server-side | Accepted |
 
 New decision? Copy `0000-template.md`.

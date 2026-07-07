@@ -277,3 +277,20 @@ the product and its architecture evolved.
   against ADR-0003/0004, the full check suite, and a status/changelog
   update). Next: `/speckit-specify` for feature 2 (catalog & browsing),
   per the plan-all-before-implement workflow.
+- `docs: amend admin product management for 1..n product images`
+  — caught a real gap before drafting feature 2's spec: feature 1's
+  data model never captured a product image, despite Vercel Blob
+  having been provisioned specifically for that purpose. Amended
+  `spec.md` (FR-014/FR-015, new acceptance scenario, edge cases,
+  `Product Image` entity, SC-006), `data-model.md` (`product_images`
+  table), `research.md` (server-side `put()` upload decision),
+  `contracts/actions.md` (`addProductImage`, `removeProductImage`,
+  `reorderProductImages`; `getProduct`/`duplicateProduct` extended),
+  `plan.md` (`@vercel/blob` dependency, new file), and regenerated
+  `tasks.md` (31 → 37 tasks, clean renumbering since nothing had been
+  implemented yet). New [ADR-0009](docs/adr/0009-vercel-blob-for-product-images.md)
+  records the upload-mechanism decision (server-side `put()` via a
+  Server Action, not a client-direct-upload token flow — product
+  photos are small and Vercel Functions now accept 100MB bodies).
+  Constitution bumped to v1.0.2 (patch): Vercel Blob recorded as the
+  file-storage choice in Technology Constraints, alongside Neon.

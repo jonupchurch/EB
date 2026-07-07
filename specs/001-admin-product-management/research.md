@@ -85,6 +85,27 @@ infrastructure. The decisions below are specific to this feature.
   rejected as unjustified complexity for two trusted users on a single
   Fluid Compute deployment.
 
+## Product image storage & upload mechanism
+
+- **Decision**: the owner uploads a product image through a Server
+  Action that accepts the file directly (`FormData`) and calls Vercel
+  Blob's server-side `put()` — no separate client-direct-upload/token
+  endpoint.
+- **Rationale**: Vercel Functions now accept request bodies up to
+  100MB, comfortably more than any real product photo. A plain
+  server-side `put()` inside the same Server Action pattern already
+  used for every other mutation (Principle II: server-side only,
+  Zod-validated) is simpler than standing up a signed client-upload
+  token route, with no practical downside at this scale (one owner,
+  a few photos per product).
+- **Alternatives considered**: Vercel Blob's client-direct-upload
+  pattern (`@vercel/blob/client`, a token-issuing API route) — the
+  standard choice for large files or high upload volume, both
+  irrelevant here; rejected as unjustified complexity for this
+  feature's actual scale.
+- **This is a real, project-visible tradeoff** — `docs/adr/0009-vercel-blob-for-product-images.md`
+  is owed alongside `docs/adr/0007-product-options-schema.md`.
+
 ## Reused infrastructure (not re-decided)
 
 - **Database, ORM, migration discipline**: unchanged from ADR-0001/0002
@@ -100,6 +121,9 @@ infrastructure. The decisions below are specific to this feature.
 ## Architecture Decision Records
 
 - `docs/adr/0007-product-options-schema.md` (new, per "Product/options
-  schema shape" above) — the only new ADR this feature owes. Everything
-  else (database, ORM, auth provider, accessibility bar) is inherited
-  from ADR-0001/0002/0003/0004/0006 and not re-litigated.
+  schema shape" above).
+- `docs/adr/0009-vercel-blob-for-product-images.md` (new, per "Product
+  image storage & upload mechanism" above).
+- Everything else (database, ORM, auth provider, accessibility bar) is
+  inherited from ADR-0001/0002/0003/0004/0006/0008 and not
+  re-litigated.

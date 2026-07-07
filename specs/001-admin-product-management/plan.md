@@ -21,9 +21,9 @@ will read.
 
 **Language/Version**: TypeScript (strict mode), Node.js 22.18.0 LTS (per `.nvmrc`)
 
-**Primary Dependencies**: Next.js 16 (App Router), React 19, Auth.js (Google provider, per `docs/adr/0006-authjs-for-google-sso.md`), Drizzle ORM + `postgres` driver (per `docs/adr/0001`, `docs/adr/0002`), Zod, Tailwind CSS v4
+**Primary Dependencies**: Next.js 16 (App Router), React 19, Auth.js (Google provider, per `docs/adr/0006-authjs-for-google-sso.md`), Drizzle ORM + `postgres` driver (per `docs/adr/0001`, `docs/adr/0002`), Zod, Tailwind CSS v4, `@vercel/blob` (product images, per `docs/adr/0008-neon-for-hosted-postgres.md`'s sibling Blob provisioning and `docs/adr/0009-vercel-blob-for-product-images.md`)
 
-**Storage**: PostgreSQL, local instance for development (hosted provider still TBD, `docs/adr/0001-postgres-persistence.md`) — this feature adds the `categories`, `products`, and per-option-type tables (see `data-model.md`)
+**Storage**: PostgreSQL — local instance for development, Neon for Production/Preview (`docs/adr/0001-postgres-persistence.md`, `docs/adr/0008-neon-for-hosted-postgres.md`) — this feature adds the `categories`, `products`, per-option-type, and `product_images` tables (see `data-model.md`). Product image files themselves live in Vercel Blob, not Postgres.
 
 **Testing**: Vitest (pricing-calculation logic, Zod schema validation) and Playwright (sign-in + create-product-and-see-it-in-list happy path)
 
@@ -43,7 +43,7 @@ will read.
 
 | Principle | Status | Notes |
 |---|---|---|
-| I. Spec-Driven Development & Legible Architecture | PASS, with a task obligation | This feature makes one new architectural call: how the flexible per-product-type option/pricing model is represented in the schema (relational tables per option category vs. a generic key-value model vs. a JSON blob). `docs/adr/0007-product-options-schema.md` MUST be authored during `/speckit-tasks`/implementation. |
+| I. Spec-Driven Development & Legible Architecture | PASS, with task obligations | This feature makes two new architectural calls: (1) how the flexible per-product-type option/pricing model is represented in the schema (relational tables per option category vs. a generic key-value model vs. a JSON blob) — `docs/adr/0007-product-options-schema.md` owed; (2) how product images are uploaded (server-side `put()` via a Server Action vs. a client-direct-upload token flow) — `docs/adr/0009-vercel-blob-for-product-images.md` owed. Both MUST be authored during `/speckit-tasks`/implementation. |
 | II. Full-Stack Substance & Trustworthy Commerce | PASS | Real Server Actions, real persistent Postgres/Drizzle data layer, Zod validation at every write. No payment/checkout in this feature, but its version of "never trust the client" is: the server recomputes and validates the total price from the submitted option selections on save, never trusting a client-submitted total figure. Rate limiting applies to admin mutation endpoints. |
 | III. Designed, Accessible Experience | PASS | Built from the already-reviewed `Resources/wireframes/Admin Screens.html` (Products List, Product Editor screens) — contrast issues in that reference are already tracked (ADR-0003/0004). Every state (empty list, loading, validation error, save success) gets designed, not just the happy path. WCAG 2.1 AA is the target per the softened Principle III. |
 | IV. Product Judgment & Scope Discipline | PASS | Scope matches spec.md exactly: product data + admin CRUD only. No storefront, no customer-facing upload flow, no discounts/shipping/orders — those are later features per the confirmed build order. |
@@ -86,8 +86,9 @@ PrintingSite/
 │   │   │       ├── [id]/
 │   │   │       │   └── page.tsx        # NEW — Product Editor, edit mode (US3); duplicate
 │   │   │       │                        #       action (US4) lives here too
-│   │   │       └── actions.ts          # NEW — createProduct, updateProduct, duplicateProduct
-│   │   │                                #       Server Actions
+│   │   │       └── actions.ts          # NEW — createProduct, updateProduct, duplicateProduct,
+│   │   │                                #       addProductImage, removeProductImage,
+│   │   │                                #       reorderProductImages Server Actions
 │   │   └── api/
 │   │       └── auth/
 │   │           └── [...nextauth]/
@@ -96,13 +97,16 @@ PrintingSite/
 │   │                                    #       callback enforcing the two-account allow-list
 │   ├── db/
 │   │   ├── index.ts                    # unchanged (existing Drizzle client)
-│   │   └── schema.ts                    # extended — adds categories, products, and the
-│   │                                    #       per-option-type tables (health_check untouched)
+│   │   └── schema.ts                    # extended — adds categories, products, the
+│   │                                    #       per-option-type tables, and product_images
+│   │                                    #       (health_check untouched)
 │   └── lib/
 │       └── admin/
 │           ├── pricing.ts               # NEW — running-total calculation, shared by the
 │           │                            #       client preview and server-side save validation
-│           └── rate-limit.ts            # NEW — admin mutation rate limiter
+│           ├── rate-limit.ts            # NEW — admin mutation rate limiter
+│           └── product-images.ts        # NEW — Vercel Blob put()/delete() helpers used by
+│                                         #       the addProductImage/removeProductImage actions
 ├── tests/
 │   └── admin/
 │       ├── pricing.test.ts             # NEW — Vitest: running-total calculation

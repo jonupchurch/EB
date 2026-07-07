@@ -118,6 +118,26 @@ product.
 | `priceAdjustmentCents` | integer | Default 0; may be negative |
 | `sortOrder` | integer, nullable | |
 
+## Product Image
+
+A photo attached to a product (FR-014), stored in Vercel Blob. Zero or
+more per product; not required to save (FR-011's minimum is name +
+base price only).
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | identifier | Primary key |
+| `productId` | identifier | FK → Product, cascade delete |
+| `url` | text | The Vercel Blob object URL |
+| `sortOrder` | integer | Display order; owner-rearrangeable |
+| `createdAt` | timestamp | Set on insert |
+
+Duplicating a product (FR-015, US4) copies each Product Image row
+(same `url`, same relative order) onto the new product — the
+underlying Blob object is shared by reference, but each product's rows
+are independent, so removing an image from one product never touches
+the other's row or the source file.
+
 ## Pricing rules
 
 - The **running total** for a given selection = `basePriceCents` +

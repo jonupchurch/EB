@@ -31,8 +31,29 @@ error and performs no read or write.
 
 - **Purpose**: load one product with its full option configuration, for the editor (US1 edit path, US3).
 - **Input**: `{ id }`.
-- **Output**: `{ id, name, description, basePriceCents, categoryId, status, processingOptions[], stylingOptions[], materialOptions[], sizeOptions[], colorOptions[], designLocationOptions[] }` (each option array shaped per `data-model.md`).
+- **Output**: `{ id, name, description, basePriceCents, categoryId, status, processingOptions[], stylingOptions[], materialOptions[], sizeOptions[], colorOptions[], designLocationOptions[], images: { id, url, sortOrder }[] }` (each option array shaped per `data-model.md`; `images` ordered by `sortOrder`).
 - **Errors**: `not_found` if `id` doesn't correspond to an existing product.
+
+## `addProductImage(productId, file)`
+
+- **Purpose**: attach an image to a product (FR-014).
+- **Input**: `{ productId }` plus the uploaded file (`FormData`).
+- **Output**: `{ id, url }` of the newly attached image, appended after the product's current last `sortOrder`.
+- **Errors**: `not_found` if `productId` doesn't exist; `validation_error` if the upload isn't a supported image type.
+
+## `removeProductImage(id)`
+
+- **Purpose**: detach an image from a product (FR-014 Edge Cases).
+- **Input**: `{ id }` of the Product Image row.
+- **Output**: `{ ok: true }` on success.
+- **Errors**: `not_found` if `id` doesn't exist. Only removes that product's row (and the underlying Blob object if no other row references it) — never affects another product's copy of the same image (FR-015).
+
+## `reorderProductImages(productId, orderedImageIds)`
+
+- **Purpose**: let the owner rearrange a product's image display order (FR-014).
+- **Input**: `{ productId, orderedImageIds }` — the full ordered list of that product's image IDs.
+- **Output**: `{ ok: true }` on success.
+- **Errors**: `not_found` if `productId` doesn't exist or `orderedImageIds` doesn't exactly match that product's current image set.
 
 ## `createProduct(input)`
 
@@ -50,10 +71,10 @@ error and performs no read or write.
 
 ## `duplicateProduct(id)`
 
-- **Purpose**: create a new Draft product pre-filled with an existing product's full configuration (US4).
+- **Purpose**: create a new Draft product pre-filled with an existing product's full configuration, including its images (US4, FR-015).
 - **Input**: `{ id }` of the product to copy.
 - **Output**: `{ id }` of the newly created duplicate.
-- **Errors**: `not_found` if the source `id` doesn't exist. The duplicate is always created as `draft` regardless of the source's status (spec.md Acceptance Scenario), with an auto-generated name (e.g., "Copy of {original name}") that the owner can rename before saving further changes — duplication itself never blocks on an unedited name (spec.md Edge Cases).
+- **Errors**: `not_found` if the source `id` doesn't exist. The duplicate is always created as `draft` regardless of the source's status (spec.md Acceptance Scenario), with an auto-generated name (e.g., "Copy of {original name}") that the owner can rename before saving further changes — duplication itself never blocks on an unedited name (spec.md Edge Cases). Image rows are copied (same `url`, same order) as independent rows — editing/removing an image on either product never affects the other.
 
 ## Shared error shape
 

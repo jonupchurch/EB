@@ -24,6 +24,7 @@ As the business owner, I want to create a brand-new product — its name, catego
 2. **Given** the owner is configuring a new product, **When** she adds a priced option (e.g., a material with a price adjustment, or a size upcharge), **Then** the displayed running total updates immediately to reflect the change.
 3. **Given** the owner is configuring a new product, **When** she saves it as Draft, **Then** it is stored but flagged as not ready, distinct from Active products.
 4. **Given** the owner attempts to save a product with no name or no base price, **Then** the system MUST reject the save with a clear, specific error identifying what's missing.
+5. **Given** the owner is configuring a product, **When** she uploads one or more images, **Then** each image attaches to the product and displays in a defined, reorderable order — a product with zero images MUST still save successfully (images are optional, not part of FR-011's minimum).
 
 ---
 
@@ -79,6 +80,8 @@ As the business owner, I want to duplicate an existing product's full configurat
 - What happens when the owner tries to save a product missing a required field (name, base price)? The system MUST reject the save and clearly identify what's missing, rather than saving incomplete data or failing silently.
 - What happens when the owner needs a category that doesn't exist yet? The system MUST let her add a new category rather than being limited to a fixed, unchangeable list.
 - What happens when a duplicated product is saved without renaming it? The system MUST still save it successfully (as a Draft) rather than blocking on an unedited name.
+- What happens when the owner removes an image from a product? It MUST be removed from that product's display order immediately; it MUST NOT affect any other product (e.g., a duplicated product's copy of that image).
+- What happens when the owner duplicates a product? The duplicate MUST get its own copy of the source's image references (same photos, same order), so removing an image from one product never affects the other.
 
 ## Requirements *(mandatory)*
 
@@ -97,6 +100,8 @@ As the business owner, I want to duplicate an existing product's full configurat
 - **FR-011**: System MUST validate that a product has at least a name and a base price before it can be saved, in either status, and MUST reject the save with a specific, actionable error if either is missing.
 - **FR-012**: System MUST NOT silently drop, ignore, or fail to save any invalid input — every rejection MUST surface a clear, specific reason to the owner.
 - **FR-013**: System MUST persist all product and pricing-option data durably, so it survives across sessions and browser restarts.
+- **FR-014**: Owner MUST be able to attach zero or more images to a product, in a defined display order she can rearrange, and remove any attached image.
+- **FR-015**: Owner MUST be able to duplicate a product's attached images along with its other configuration (FR-010), as independent copies that don't affect the source if either is later changed.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -107,6 +112,7 @@ As the business owner, I want to duplicate an existing product's full configurat
 - **Size Option**: An available size for a product, each with an optional price adjustment.
 - **Color Option**: An available color for a product; open-ended, defined per-product by the owner, not drawn from a fixed system-wide list.
 - **Design Location Option**: A placement location for a design on a product (e.g., front, back, sleeve), one or many per product, each with an optional price adjustment.
+- **Product Image**: A photo attached to a product, with a display order. A product may have zero or more; not required to save (FR-011's minimum is name + base price only).
 
 ## Success Criteria *(mandatory)*
 
@@ -117,6 +123,7 @@ As the business owner, I want to duplicate an existing product's full configurat
 - **SC-003**: Starting from sign-in, the owner can locate any existing product in the list and begin editing it within 3 interactions (e.g., clicks or taps).
 - **SC-004**: The entire initial launch catalog (approximately 22 products across 5 categories) can be fully and accurately represented using only this feature's data model, with zero products requiring a workaround or unsupported configuration.
 - **SC-005**: 100% of saved products have a running total price that exactly equals the sum of the base price and every selected option's price adjustment — no calculation ever drifts from that sum.
+- **SC-006**: Every image the owner attaches to a product is retrievable and displays in the order she set, both immediately and after a save-and-reload cycle.
 
 ## Assumptions
 
@@ -126,3 +133,4 @@ As the business owner, I want to duplicate an existing product's full configurat
 - This feature operates entirely on the product catalog data model and has no dependency on orders, carts, customers, or any customer-facing surface — none of those exist yet.
 - Seeding the real ~22-item launch catalog is something the owner does using this feature once it ships; building import/seed tooling is not part of this feature.
 - The Google sign-in mechanism itself is the decision already recorded in `docs/adr/0006-authjs-for-google-sso.md` — this spec covers what the admin area does once signed in and how access is restricted, not the authentication implementation.
+- Product images are standard web photo formats (JPEG/PNG/WebP) at typical camera/phone resolution — no specific file-size or dimension limit is enforced in this feature beyond what the storage layer itself requires; image editing (cropping, filters) is not in scope, only attach/reorder/remove.

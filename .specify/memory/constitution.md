@@ -1,15 +1,22 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.0.0 → 1.0.1 (patch: follow-up TODO resolved)
+Version change: 1.0.1 → 1.0.2 (patch: infra choice documented)
 Modified principles: none
 Added principles: none
 Added sections: none
 Removed sections: none
-Other changes: resolved the "choose a hosted/production Postgres
-  provider" follow-up — Neon, provisioned via the Vercel Marketplace
-  (docs/adr/0008-neon-for-hosted-postgres.md), verified end-to-end
-  against the deployed Production environment on 2026-07-07.
+Other changes: recorded Vercel Blob as the product-image file-storage
+  choice (docs/adr/0009-vercel-blob-for-product-images.md), decided
+  while amending feature 1's spec/plan/tasks to add image-upload
+  support (feature 1's data model had no image field despite Blob
+  already being provisioned for this purpose).
+
+Prior report (v1.0.0 → v1.0.1, patch): resolved the "choose a hosted/
+  production Postgres provider" follow-up — Neon, provisioned via the
+  Vercel Marketplace (docs/adr/0008-neon-for-hosted-postgres.md),
+  verified end-to-end against the deployed Production environment on
+  2026-07-07.
 Templates requiring updates:
   ✅ .specify/templates/plan-template.md — no hardcoded principle names.
   ✅ .specify/templates/spec-template.md — compatible.
@@ -215,7 +222,9 @@ a local instance for development, **Neon** (via the Vercel Marketplace)
 for Production/Preview — queried through Drizzle (see
 `docs/adr/0001-postgres-persistence.md`,
 `docs/adr/0002-drizzle-orm.md`,
-`docs/adr/0008-neon-for-hosted-postgres.md`). Payments: **PayPal** for MVP (see
+`docs/adr/0008-neon-for-hosted-postgres.md`). File storage: **Vercel
+Blob** for product images, uploaded server-side (see
+`docs/adr/0009-vercel-blob-for-product-images.md`). Payments: **PayPal** for MVP (see
 `docs/adr/0005-paypal-for-mvp-payments.md`) — Stripe is deferred to a
 fast-follow integration, not abandoned; server-side only, every
 webhook signature verified before use (Principle II). Tax: sales tax is
@@ -278,4 +287,4 @@ per Principle I, this project's committed ADRs, specs, and plans are
 authored (or substantively reconciled) through this project's own
 process, so the "process produced this" record stays genuine.
 
-**Version**: 1.0.1 | **Ratified**: 2026-07-07 | **Last Amended**: 2026-07-07
+**Version**: 1.0.2 | **Ratified**: 2026-07-07 | **Last Amended**: 2026-07-07

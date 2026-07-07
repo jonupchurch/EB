@@ -9,9 +9,10 @@ requirements each scenario traces to.
 - `npm install`
 - `.env.local` filled in per `.env.example`: `DATABASE_URL` (local
   Postgres), `AUTH_SECRET`, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`
-  (a real Google OAuth client — see `docs/adr/0006-authjs-for-google-sso.md`)
+  (a real Google OAuth client — see `docs/adr/0006-authjs-for-google-sso.md`),
+  `BLOB_READ_WRITE_TOKEN` (see `docs/adr/0009-vercel-blob-for-product-images.md`)
 - `npm run db:migrate` — applies this feature's migration (categories,
-  products, and the six option tables)
+  products, the six option tables, and `product_images`)
 
 ## Automated checks
 
@@ -62,10 +63,18 @@ Run `npm run dev`, sign in at `/admin` with an authorized Google account:
    options selected, manually sum the base price and each adjustment
    and confirm it exactly matches the displayed running total, with no
    rounding drift.
+10. **Product images (FR-014, SC-006)**: upload two or more images to a
+    product, confirm they display in upload order, reorder them, remove
+    one, then reload the page and confirm the remaining images and
+    their order persist correctly.
+11. **Image duplication independence (FR-015, Edge Cases)**: duplicate a
+    product that has images attached. Confirm the duplicate shows the
+    same images in the same order, then remove an image from the
+    duplicate and confirm the original product's images are unaffected.
 
 ## Privacy/security check
 
-10. Confirm no Draft product's data is reachable by any request that
+12. Confirm no Draft product's data is reachable by any request that
     isn't an authenticated, authorized admin session (FR-007) — there's
     no customer-facing route yet to check this against directly, but
     the query layer itself must not expose Draft rows unconditionally.
