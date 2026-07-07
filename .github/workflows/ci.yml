@@ -8,6 +8,22 @@ jobs:
   quality:
     name: Typecheck, lint, test
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: printing_site
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/printing_site
     steps:
       - uses: actions/checkout@v4
 
@@ -17,6 +33,8 @@ jobs:
           cache: "npm"
 
       - run: npm ci
+
+      - run: npm run db:migrate
 
       - run: npm run typecheck
 
@@ -27,6 +45,22 @@ jobs:
   accessibility:
     name: Accessibility (axe) + e2e
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: printing_site
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/printing_site
     steps:
       - uses: actions/checkout@v4
 
@@ -36,6 +70,8 @@ jobs:
           cache: "npm"
 
       - run: npm ci
+
+      - run: npm run db:migrate
 
       - run: npx playwright install --with-deps chromium
 

@@ -483,3 +483,13 @@ the product and its architecture evolved.
 
 **All five MVP features are now specified, planned, and tasked.** Next:
 `/speckit-implement`, starting with feature 1's `tasks.md`.
+- `fix: add Postgres service to CI` (`.github/workflows/ci.yml`) — a
+  pre-implementation review found CI had no database access at all
+  (no service container, no `DATABASE_URL`), yet
+  `tests/db/connection.test.ts` and `e2e/health.spec.ts` already assert
+  a live, connected database — both the `quality` and `accessibility`
+  jobs were at risk of failing the moment either ran. Added a
+  `postgres:16` service container, a `DATABASE_URL` env pointing to
+  it, and an `npm run db:migrate` step before tests, on both jobs.
+  Caught before feature 1 adds real schema and substantially more
+  DB-backed tests.

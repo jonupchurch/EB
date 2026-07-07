@@ -80,6 +80,8 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 
 **All five MVP features are now specified, planned, and tasked.** This closes out the plan-all-before-implement phase of this project.
 
+- **2026-07-07** — Pre-implementation review caught a real gap: `.github/workflows/ci.yml` had no Postgres access at all (no service container, no `DATABASE_URL`), yet `tests/db/connection.test.ts` and `e2e/health.spec.ts` already assert a live, connected database — both CI jobs were at risk of failing (or already were) the moment either ran. Fixed by adding a `postgres:16` service container plus a `DATABASE_URL` env pointing to it, and an `npm run db:migrate` step before tests, on both the `quality` and `accessibility` jobs. Caught now, before feature 1 adds real schema and substantially more DB-backed tests.
+
 ## Next steps
 
 1. Begin `/speckit-implement`, starting with feature 1's [tasks.md](specs/001-admin-product-management/tasks.md), then proceeding through features 2–5 in order (each depends on the schema/code of the ones before it).
