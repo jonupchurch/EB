@@ -144,6 +144,7 @@ export function ProductEditor({
 }: ProductEditorProps) {
   const router = useRouter();
   const formId = useId();
+  const photoInputId = useId();
 
   const [categories, setCategories] = useState(initialCategories);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -554,11 +555,21 @@ export function ProductEditor({
                 </div>
               ))}
             </div>
+            <label
+              htmlFor={photoInputId}
+              className={`inline-block rounded px-4 py-2 text-sm font-medium text-white ${
+                uploading ? "cursor-not-allowed bg-teal/50" : "cursor-pointer bg-teal"
+              }`}
+            >
+              {uploading ? "Uploading…" : "+ Add photo"}
+            </label>
             <input
+              id={photoInputId}
               type="file"
               accept="image/*"
               aria-label="Upload a product photo"
               disabled={uploading}
+              className="sr-only"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) void handleImageUpload(file);
