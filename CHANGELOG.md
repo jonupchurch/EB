@@ -418,3 +418,14 @@ the product and its architecture evolved.
   (`getOrderConfirmation`, the internal `sendConfirmationEmail`) and
   `quickstart.md`. Added `RESEND_API_KEY` to `.env.example`/`.env.local`.
   Constitution Check passed with no violations.
+- `tasks: order confirmation` (`specs/004-order-confirmation/tasks.md`) — ran
+  `/speckit-tasks`. 15 tasks: Setup (the `resend` dependency and its
+  ADR), a one-task Foundational phase (`getOrderConfirmation`, shared
+  by US1 and US3), then US1 (confirmation page + confirming→paid
+  polling — the MVP slice), US2 (the one-time email, wired into
+  feature 3's PayPal webhook handler), and US3 (dynamic rendering +
+  a revisit/privacy test — deliberately thin, since US1's fresh-fetch
+  design already does most of the work), plus Polish. Smallest task
+  count of the four MVP features tasked so far. Next: `/speckit-specify`
+  for feature 5 (admin: orders, discounts, shipping & fees) — the last
+  MVP feature.
