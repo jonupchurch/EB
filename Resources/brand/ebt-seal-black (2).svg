@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="512" height="512" role="img" aria-label="Erica Burns Things seal, one color">
+  <defs>
+    
+    <path id="sealArcTopK" d="M37.6,64 A72,72 0 0,1 162.4,64"></path>
+    <path id="sealArcRightK" d="M162.4,64 A72,72 0 0,1 100,172"></path>
+    <path id="sealArcLeftK" d="M100,172 A72,72 0 0,1 37.6,64"></path>
+  </defs>
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#1B1815" stroke-width="4"></circle>
+  <text fill="#1B1815" font-family="Work Sans, sans-serif" font-weight="600" font-size="10" letter-spacing="1.5"><textPath href="#sealArcTopK" startOffset="50%" text-anchor="middle">BURNED IN</textPath></text>
+  <text fill="#1B1815" font-family="Work Sans, sans-serif" font-weight="600" font-size="10" letter-spacing="1.5"><textPath href="#sealArcRightK" startOffset="50%" text-anchor="middle">PRINTED ON</textPath></text>
+  <text fill="#1B1815" font-family="Work Sans, sans-serif" font-weight="600" font-size="10" letter-spacing="1.5"><textPath href="#sealArcLeftK" startOffset="50%" text-anchor="middle">MADE TO ORDER</textPath></text>
+  <circle cx="37.6" cy="64" r="2.8" fill="#1B1815"></circle>
+  <circle cx="162.4" cy="64" r="2.8" fill="#1B1815"></circle>
+  <circle cx="100" cy="172" r="2.8" fill="#1B1815"></circle>
+  <g transform="translate(72,40) scale(0.55)">
+    <path d="M52 6 C60 30 76 40 76 68 C76 92 64 108 50 108 C34 108 24 92 26 72 C27 60 36 56 41 44 C44 57 39 62 48 66 C56 58 56 32 52 6 Z" fill="#1B1815"></path>
+  </g>
+  <g fill="#1B1815" font-family="Bricolage Grotesque, sans-serif" font-weight="800" letter-spacing="0.3" text-anchor="middle">
+    <text x="100" y="112" font-size="12">ERICA</text>
+    <text x="100" y="125" font-size="12">BURNS</text>
+    <text x="100" y="138" font-size="12">THINGS</text>
+  </g>
+</svg>
