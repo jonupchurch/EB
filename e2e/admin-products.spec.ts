@@ -27,7 +27,7 @@ test("sign-in, create a product with a priced option, and see it in the list", a
     .filter({ has: page.getByRole("heading", { name: "Size" }) });
   await sizeSection.getByRole("button", { name: "+ Add size option" }).click();
   await sizeSection.locator('input[placeholder="Label"]').fill("Large");
-  await sizeSection.locator('input[type="number"]').fill("4.00");
+  await sizeSection.getByLabel("Size option price adjustment").fill("4.00");
 
   await expect(page.getByText(/Example running total/i)).toBeVisible();
 

@@ -454,7 +454,23 @@ export async function addProductImage(
     };
   }
 
-  const { url } = await uploadProductImage(file);
+  let url: string;
+  try {
+    ({ url } = await uploadProductImage(file));
+  } catch (error) {
+    // Never let a Blob upload failure surface as Next's generic,
+    // obfuscated production error — give the admin something specific
+    // and actionable (FR-011/FR-012: no silent failures), and log the
+    // real cause server-side for debugging.
+    console.error("addProductImage: upload to Blob failed", error);
+    return {
+      ok: false,
+      error: "validation_error",
+      fieldErrors: {
+        file: `Upload failed: ${error instanceof Error ? error.message : "unknown error"}`,
+      },
+    };
+  }
 
   const lastImage = await db.query.productImages.findFirst({
     where: (productImages, { eq }) => eq(productImages.productId, productId),

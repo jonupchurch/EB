@@ -220,22 +220,38 @@ export function ProductEditor({
     if (!productId) return;
     setUploading(true);
     setImageError(null);
-    const formData = new FormData();
-    formData.set("file", file);
-    const result = await addProductImage(productId, formData);
-    setUploading(false);
-    if (result.ok) {
-      setImages((prev) => [...prev, { ...result.data, sortOrder: prev.length }]);
-    } else {
-      setImageError(result.fieldErrors?.file ?? "Could not upload image");
+    try {
+      const formData = new FormData();
+      formData.set("file", file);
+      const result = await addProductImage(productId, formData);
+      if (result.ok) {
+        setImages((prev) => [...prev, { ...result.data, sortOrder: prev.length }]);
+      } else {
+        setImageError(result.fieldErrors?.file ?? "Could not upload image");
+      }
+    } catch (error) {
+      // A thrown error here (network issue, an unexpected server
+      // exception) must never leave the UI silently stuck — always
+      // surface something actionable (FR-011/FR-012: no silent
+      // failures).
+      setImageError(error instanceof Error ? error.message : "Could not upload image");
+    } finally {
+      setUploading(false);
     }
   }
 
   async function handleRemoveImage(id: number) {
     if (!productId) return;
-    const result = await removeProductImage(id);
-    if (result.ok) {
-      setImages((prev) => prev.filter((img) => img.id !== id));
+    setImageError(null);
+    try {
+      const result = await removeProductImage(id);
+      if (result.ok) {
+        setImages((prev) => prev.filter((img) => img.id !== id));
+      } else {
+        setImageError("Could not remove image");
+      }
+    } catch (error) {
+      setImageError(error instanceof Error ? error.message : "Could not remove image");
     }
   }
 
@@ -246,10 +262,16 @@ export function ProductEditor({
     const reordered = [...images];
     [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
     setImages(reordered);
-    await reorderProductImages(
-      productId,
-      reordered.map((img) => img.id),
-    );
+    setImageError(null);
+    try {
+      const result = await reorderProductImages(
+        productId,
+        reordered.map((img) => img.id),
+      );
+      if (!result.ok) setImageError("Could not save the new image order");
+    } catch (error) {
+      setImageError(error instanceof Error ? error.message : "Could not save the new image order");
+    }
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -395,13 +417,10 @@ export function ProductEditor({
           <label className="block text-sm font-medium text-ink" htmlFor="basePriceCents">
             Base price (USD)
           </label>
-          <input
+          <PriceInput
             id="basePriceCents"
-            type="number"
-            step="0.01"
-            min="0"
-            value={(basePriceCents / 100).toFixed(2)}
-            onChange={(e) => setBasePriceCents(Math.round(Number(e.target.value) * 100))}
+            valueCents={basePriceCents}
+            onChangeCents={setBasePriceCents}
             className="mt-1 w-40 rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
           />
           {fieldErrors.basePriceCents && (
@@ -585,6 +604,64 @@ function NumberField({
   );
 }
 
+// A currency input backed by its own local string buffer, decoupled
+// from the controlled `.toFixed(2)`-formatted value except when not
+// focused. Reformatting the displayed value on every keystroke (the
+// naive `value={(cents / 100).toFixed(2)}` approach) fights typing —
+// e.g. entering "18.00" gets clobbered mid-type since the input snaps
+// back to a fixed-decimal string after each character.
+function PriceInput({
+  id,
+  ariaLabel,
+  valueCents,
+  onChangeCents,
+  className,
+}: {
+  id?: string;
+  ariaLabel?: string;
+  valueCents: number;
+  onChangeCents: (cents: number) => void;
+  className?: string;
+}) {
+  const [text, setText] = useState((valueCents / 100).toFixed(2));
+  const [focused, setFocused] = useState(false);
+  const [syncedCents, setSyncedCents] = useState(valueCents);
+
+  // Adjust state during render rather than in an effect (React's
+  // recommended pattern for "resync local state when a prop changes,
+  // but only while not actively editing it") — avoids an extra render
+  // pass and the cascading-renders-in-effect lint warning.
+  if (!focused && valueCents !== syncedCents) {
+    setSyncedCents(valueCents);
+    setText((valueCents / 100).toFixed(2));
+  }
+
+  return (
+    <input
+      id={id}
+      type="text"
+      inputMode="decimal"
+      aria-label={ariaLabel}
+      value={text}
+      onFocus={() => setFocused(true)}
+      onChange={(e) => {
+        const raw = e.target.value;
+        if (!/^\d*\.?\d{0,2}$/.test(raw)) return;
+        setText(raw);
+        const parsed = Number(raw);
+        if (raw !== "" && raw !== "." && !Number.isNaN(parsed)) {
+          onChangeCents(Math.round(parsed * 100));
+        }
+      }}
+      onBlur={() => {
+        setFocused(false);
+        setText((valueCents / 100).toFixed(2));
+      }}
+      className={className}
+    />
+  );
+}
+
 function LabeledOptionSection<T extends LabeledRow>({
   title,
   rows,
@@ -618,16 +695,12 @@ function LabeledOptionSection<T extends LabeledRow>({
               aria-label={`${title} option label`}
               className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
             />
-            <input
-              type="number"
-              step="0.01"
-              value={(row.priceAdjustmentCents / 100).toFixed(2)}
-              onChange={(e) =>
-                update(row._key, {
-                  priceAdjustmentCents: Math.round(Number(e.target.value) * 100),
-                } as Partial<T>)
+            <PriceInput
+              valueCents={row.priceAdjustmentCents}
+              onChangeCents={(cents) =>
+                update(row._key, { priceAdjustmentCents: cents } as Partial<T>)
               }
-              aria-label={`${title} option price adjustment`}
+              ariaLabel={`${title} option price adjustment`}
               className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
             />
             <button
@@ -686,16 +759,10 @@ function MaterialOptionSection({
               aria-label="Material option description"
               className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
             />
-            <input
-              type="number"
-              step="0.01"
-              value={(row.priceAdjustmentCents / 100).toFixed(2)}
-              onChange={(e) =>
-                update(row._key, {
-                  priceAdjustmentCents: Math.round(Number(e.target.value) * 100),
-                })
-              }
-              aria-label="Material option price adjustment"
+            <PriceInput
+              valueCents={row.priceAdjustmentCents}
+              onChangeCents={(cents) => update(row._key, { priceAdjustmentCents: cents })}
+              ariaLabel="Material option price adjustment"
               className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
             />
             <button type="button" onClick={() => remove(row._key)} className="text-sm text-red-700">
@@ -758,16 +825,10 @@ function ColorOptionSection({
               aria-label="Color option swatch hex value"
               className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
             />
-            <input
-              type="number"
-              step="0.01"
-              value={(row.priceAdjustmentCents / 100).toFixed(2)}
-              onChange={(e) =>
-                update(row._key, {
-                  priceAdjustmentCents: Math.round(Number(e.target.value) * 100),
-                })
-              }
-              aria-label="Color option price adjustment"
+            <PriceInput
+              valueCents={row.priceAdjustmentCents}
+              onChangeCents={(cents) => update(row._key, { priceAdjustmentCents: cents })}
+              ariaLabel="Color option price adjustment"
               className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
             />
             <button type="button" onClick={() => remove(row._key)} className="text-sm text-red-700">
