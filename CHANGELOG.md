@@ -93,3 +93,13 @@ the product and its architecture evolved.
   shipping-carrier-API ADRs now owed), and `docs/non-functional.md`
   (new "Promotions, tax & shipping" section; removed premature
   upload-limit rows for the deferred customizer feature).
+- `docs: accept contrast exceptions in the Ember Design System v0.1
+  mockup` — added `Resources/brand/Ember Design System.html` (a
+  bundled/exported token+component mockup) and accepted
+  [ADR-0003](docs/adr/0003-accepted-contrast-exceptions-ember-v0.1.md):
+  three specific color pairings (a promo-code empty state + cart icon,
+  a checkmark icon, and a "product photo" placeholder label) fail
+  contrast despite the file's own claim of full WCAG AA compliance, but
+  none are load-bearing to completing an order, so they're accepted
+  as-is per Principle III's target-not-gate accessibility stance rather
+  than fixed now. Updated the ADR index and `status.md`.
