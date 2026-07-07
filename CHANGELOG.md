@@ -305,3 +305,25 @@ the product and its architecture evolved.
   Zero new persisted entities: this feature reads feature 1's
   `Product`/`Category`/option tables, filtered to `status = active`.
   Quality checklist passed clean on the first pass. Next: `/speckit-plan`.
+- `docs: amend admin product management for FR-016 and shared pricing`
+  — while planning feature 2, caught two more small cross-feature gaps
+  before they could cause rework. Feature 1 gains FR-016 and a
+  `requiresCustomerUpload` boolean on Processing Option, so feature 2
+  can exclude not-yet-orderable options (e.g., "bring your own
+  design") by a real flag rather than guessing from label text. The
+  shared running-total function also moves from
+  `src/lib/admin/pricing.ts` to `src/lib/pricing.ts`, since feature 2's
+  product detail page reuses it too. Both changes cost nothing since
+  neither feature had been implemented yet.
+- `plan: catalog & browsing` (`specs/002-catalog-browsing/`) — ran
+  `/speckit-plan`. Added `plan.md` (Technical Context, Constitution
+  Check — all six principles pass), `research.md` (SSR over ISR for
+  Draft-hiding correctness, reused pricing logic, a separate
+  `(storefront)` route group so the real shell never wraps `/admin`,
+  server-side processing-option filtering), `data-model.md` (zero new
+  tables — a pure read layer over feature 1, filtered to
+  `status = 'active'`), `contracts/queries.md` (three read-only
+  queries: `getActiveCategories`, `getActiveProductsByCategory`,
+  `getActiveProduct`), and `quickstart.md`. One new ADR owed:
+  `docs/adr/0010-catalog-rendering-strategy.md`. Constitution Check
+  passed with no violations.

@@ -101,15 +101,17 @@ PrintingSite/
 │   │                                    #       per-option-type tables, and product_images
 │   │                                    #       (health_check untouched)
 │   └── lib/
+│       ├── pricing.ts                   # NEW — running-total calculation; lives outside
+│       │                                #       admin/ because feature 2 (catalog & browsing)
+│       │                                #       reuses it for the customer-facing price preview
 │       └── admin/
-│           ├── pricing.ts               # NEW — running-total calculation, shared by the
-│           │                            #       client preview and server-side save validation
 │           ├── rate-limit.ts            # NEW — admin mutation rate limiter
 │           └── product-images.ts        # NEW — Vercel Blob put()/delete() helpers used by
 │                                         #       the addProductImage/removeProductImage actions
 ├── tests/
+│   ├── pricing.test.ts                 # NEW — Vitest: running-total calculation (matches
+│   │                                    #       src/lib/pricing.ts's shared, non-admin location)
 │   └── admin/
-│       ├── pricing.test.ts             # NEW — Vitest: running-total calculation
 │       └── product-schema.test.ts      # NEW — Vitest: Zod validation (valid + rejected input)
 ├── e2e/
 │   └── admin-products.spec.ts          # NEW — Playwright: sign-in + create + list flow

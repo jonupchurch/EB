@@ -28,7 +28,7 @@
 
 **Purpose**: Schema, auth gating, and shared logic every user story needs. No story work starts before this phase is done.
 
-- [ ] T005 Extend `src/db/schema.ts` with `categories`, `products` (nullable `categoryId` FK, `status` enum default `draft`), the six option tables — `processingOptions`, `stylingOptions`, `materialOptions` (nullable `modelNumber`), `sizeOptions`, `colorOptions` (nullable `swatchHex`), `designLocationOptions` — and `productImages` (`productId` FK, `url`, `sortOrder`), each FK'd to `products` with cascade delete, per `data-model.md`. `health_check` stays untouched.
+- [ ] T005 Extend `src/db/schema.ts` with `categories`, `products` (nullable `categoryId` FK, `status` enum default `draft`), the six option tables — `processingOptions` (with a `requiresCustomerUpload` boolean, default `false`), `stylingOptions`, `materialOptions` (nullable `modelNumber`), `sizeOptions`, `colorOptions` (nullable `swatchHex`), `designLocationOptions` — and `productImages` (`productId` FK, `url`, `sortOrder`), each FK'd to `products` with cascade delete, per `data-model.md`. `health_check` stays untouched.
 - [ ] T006 Generate the Drizzle migration for the new tables (`npm run db:generate`), review the output, and commit it as `drizzle/0001_*.sql` — depends on T005
 - [ ] T007 Apply the migration locally (`npm run db:migrate`) and confirm the new tables exist — depends on T006
 - [ ] T008 [P] Implement `src/auth.ts` — Auth.js config with the Google provider; `signIn` callback rejects any account whose email isn't on the authorized list (read from a new `ADMIN_ALLOWED_EMAILS` env var, comma-separated — add it to `.env.example`/`.env.local`, never hardcode the two real emails in source), per ADR-0006 and `research.md`'s allow-list decision
@@ -36,7 +36,7 @@
 - [ ] T010 Implement `src/app/admin/layout.tsx` — session-gated admin shell (nav per `Resources/wireframes/Admin Screens.html`); redirects to sign-in if unauthenticated, denies with a clear message if authenticated but not on the allow-list (defense in depth alongside T008's `signIn` callback, per FR-002) — depends on T008
 - [ ] T011 [P] Implement `src/app/admin/page.tsx` — redirects to `/admin/products`
 - [ ] T012 Add a test-only Auth.js Credentials provider to `src/auth.ts`, active only when a dedicated test flag is set (never in production), letting Playwright sign in deterministically as an authorized account without real Google OAuth (matches this project's established fake-provider-for-external-dependencies pattern) — depends on T008
-- [ ] T013 [P] Implement `src/lib/admin/pricing.ts` — running-total calculation (`basePriceCents` + every selected option's `priceAdjustmentCents` across all six categories), per `data-model.md`'s Pricing rules; this single function is used by both the client-side live preview and server-side save validation so they can never disagree
+- [ ] T013 [P] Implement `src/lib/pricing.ts` (not under `admin/` — feature 2 reuses it for the customer-facing price preview) — running-total calculation (`basePriceCents` + every selected option's `priceAdjustmentCents` across all six categories), per `data-model.md`'s Pricing rules; this single function is used by the admin client-side live preview, admin server-side save validation, and (later) the storefront's price preview, so none of them can ever disagree
 - [ ] T014 [P] Implement `src/lib/admin/rate-limit.ts` — simple in-memory rate limiter for admin mutation Server Actions, sized for two trusted users, per `research.md`
 - [ ] T015 [P] Implement `src/lib/admin/product-images.ts` — thin wrapper around Vercel Blob's `put()`/`del()` for product photo upload/removal, per ADR-0009 — depends on T002
 - [ ] T016 Implement Zod schemas for `Product` and all six option shapes in `src/lib/admin/schemas.ts` (`name`/`label` required; `basePriceCents` required integer ≥ 0; `priceAdjustmentCents` integer, any sign, defaults to 0) per `data-model.md`'s Validation rules — consider `drizzle-zod`'s `createInsertSchema` against T005's tables as a starting point — depends on T005
@@ -54,14 +54,14 @@
 
 ### Tests for User Story 1
 
-- [ ] T018 [P] [US1] Vitest for the running-total calculation in `tests/admin/pricing.test.ts` — zero options, single option, multiple categories, and a negative adjustment (e.g. the children's-sizing discount from the wireframe)
+- [ ] T018 [P] [US1] Vitest for the running-total calculation in `tests/pricing.test.ts` (not under `tests/admin/` — matches `src/lib/pricing.ts`'s shared location) — zero options, single option, multiple categories, and a negative adjustment (e.g. the children's-sizing discount from the wireframe)
 - [ ] T019 [P] [US1] Vitest for Zod validation in `tests/admin/product-schema.test.ts` — valid full product; missing name; missing/negative `basePriceCents`; an option row missing its label; an option row's `priceAdjustmentCents` defaulting to 0 when omitted (not blocking the save, per Edge Cases)
 
 ### Implementation for User Story 1
 
 - [ ] T020 [US1] Implement `createProduct(input)` Server Action in `src/app/admin/products/actions.ts` — Zod-validate (T016), apply the rate limiter (T014), transactional insert of the product row plus all six option arrays in one transaction (all-or-nothing), per `contracts/actions.md` — depends on T005, T014, T016, T017 (same file)
 - [ ] T021 [US1] Implement `addProductImage(productId, file)` Server Action in `src/app/admin/products/actions.ts` — uploads via T015, appends a `productImages` row after the product's current last `sortOrder` — depends on T005, T015
-- [ ] T022 [US1] Build the shared Product Editor UI (`src/app/admin/products/product-editor.tsx`) — name/category/description/base-price fields, category selector with inline "add new category" (T017), six option sections each with add/remove rows, an image gallery (upload via T021, reorderable, removable), a live running total (T013), Active/Draft controls, and field-level error display (no silent failures, FR-011/FR-012) — per `Resources/wireframes/Admin Screens.html`
+- [ ] T022 [US1] Build the shared Product Editor UI (`src/app/admin/products/product-editor.tsx`) — name/category/description/base-price fields, category selector with inline "add new category" (T017), six option sections each with add/remove rows (processing options include a "not yet available to customers" toggle for `requiresCustomerUpload`, FR-016), an image gallery (upload via T021, reorderable, removable), a live running total (T013), Active/Draft controls, and field-level error display (no silent failures, FR-011/FR-012) — per `Resources/wireframes/Admin Screens.html`
 - [ ] T023 [US1] Implement `src/app/admin/products/new/page.tsx` — renders the Product Editor (T022) in create mode, calls `createProduct` (T020) on submit, redirects to the products list on success — depends on T020, T021, T022
 
 **Checkpoint**: User Story 1 is fully functional and independently testable (MVP scope).
@@ -158,7 +158,7 @@
 ```bash
 # Once T005 (schema) is committed, these can proceed together:
 Task: "Implement src/auth.ts — Google provider + signIn allow-list callback"
-Task: "Implement src/lib/admin/pricing.ts — running-total calculation"
+Task: "Implement src/lib/pricing.ts — running-total calculation"
 Task: "Implement src/lib/admin/rate-limit.ts — admin mutation rate limiter"
 Task: "Implement src/lib/admin/product-images.ts — Blob put()/del() wrapper"
 ```

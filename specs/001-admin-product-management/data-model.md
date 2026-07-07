@@ -53,6 +53,7 @@ them yet (per `docs/future-work.md`'s clarification).
 | `label` | text | Required, e.g. "Standard Printed", "Bring your own design" |
 | `priceAdjustmentCents` | integer | Default 0; **may be negative or positive** (see Pricing rules below) |
 | `sortOrder` | integer, nullable | Display ordering within the editor |
+| `requiresCustomerUpload` | boolean | Default `false` (FR-016). `true` for options like "Bring your own design"/"Custom design service" that have no working customer order flow yet — lets a later customer-facing feature filter on this flag instead of guessing from `label` text |
 
 ## Styling Option
 
@@ -147,9 +148,11 @@ the other's row or the source file.
 - Price adjustments are signed integers — most are upcharges (positive)
   but discounted variants (e.g., children's sizing) are legitimate and
   must be representable as negative.
-- All pricing math happens through one shared function (`src/lib/admin/pricing.ts`,
-  per `plan.md`), used identically by the client-side live preview and
-  the server-side save validation, so the two can never disagree.
+- All pricing math happens through one shared function (`src/lib/pricing.ts`,
+  per `plan.md` — deliberately outside `admin/`, since feature 2 reuses
+  it for the customer-facing price preview), used identically by the
+  client-side live preview and the server-side save validation, so
+  neither surface can ever disagree.
 
 ## Validation rules (Zod, enforced server-side per Principle II)
 
