@@ -561,3 +561,17 @@ the product and its architecture evolved.
   instead of Next's generic obfuscated production error. Deployed; the
   price fix is confirmed live. Image upload needs Jon to retest —
   previously-silent failures should now surface a real error message.
+- `fix: raise Server Action body size limit for image uploads` — the
+  previous fix's now-visible error message revealed the real cause:
+  `Error: Body exceeded 1 MB limit` (Vercel runtime logs). Next.js
+  caps Server Action request bodies at 1MB by default —
+  `addProductImage` uploads a file as `FormData` through a Server
+  Action, so any real photo (routinely several MB from a phone) was
+  rejected by the framework itself, before the action code (and its
+  try/catch) ever ran — surfacing as Next's generic obfuscated
+  production error regardless of my earlier error handling. Raised
+  `experimental.serverActions.bodySizeLimit` to `10mb` in
+  `next.config.ts`, plus a matching client-side file-size check for a
+  clear, specific message on an oversized file. Deployed and confirmed
+  live (health check + build both green); awaiting Jon's retest with a
+  real photo.
