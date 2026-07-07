@@ -265,3 +265,15 @@ the product and its architecture evolved.
   with a real upload/fetch/delete round-trip against the live store.
   Both pieces of real infrastructure are now confirmed working
   end-to-end.
+- `tasks: admin product management` (`specs/001-admin-product-management/tasks.md`)
+  — ran `/speckit-tasks`. 31 tasks: 2 Setup, 12 Foundational (schema +
+  migration; Auth.js config with the two-account `signIn` allow-list
+  callback and a test-only Credentials provider for deterministic e2e
+  sign-in; shared pricing/rate-limit/Zod-schema helpers; category
+  actions), then US1–US4 in priority order (US1 create is the
+  independently-shippable MVP slice; US2's list, US3's edit, and US4's
+  duplicate each reuse US1's shared Product Editor component), and a
+  Polish phase (full `quickstart.md` pass, an accessibility spot-check
+  against ADR-0003/0004, the full check suite, and a status/changelog
+  update). Next: `/speckit-specify` for feature 2 (catalog & browsing),
+  per the plan-all-before-implement workflow.
