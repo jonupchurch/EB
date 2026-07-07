@@ -228,3 +228,15 @@ the product and its architecture evolved.
   models already had informed defaults for every ambiguous point.
   Quality checklist (`checklists/requirements.md`) passed clean on the
   first pass. Next: `/speckit-plan`.
+- `plan: admin product management` (`specs/001-admin-product-management/`)
+  — ran `/speckit-plan`. Added `plan.md` (Technical Context, Constitution
+  Check — all six principles pass), `research.md` (product/options
+  schema shape, money-as-integer-cents, Auth.js allow-list enforcement,
+  admin rate-limiting approach), `data-model.md` (Category, Product,
+  and six option-type entities), `contracts/actions.md` (Server Action
+  interfaces: getProducts, getCategories, getProduct, createProduct,
+  updateProduct, duplicateProduct), and `quickstart.md`. One new ADR
+  owed: `docs/adr/0007-product-options-schema.md` (relational tables
+  per option category, over a generic key-value table or a JSON blob),
+  to be authored during `/speckit-tasks`/implementation. Constitution
+  Check re-passed after design with no violations.
