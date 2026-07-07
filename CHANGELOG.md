@@ -346,3 +346,15 @@ the product and its architecture evolved.
   `tasks.md`) to add optional `weightOz`/`lengthIn`/`widthIn`/`heightIn`
   fields — one packaged value per product, not per option, since
   per-size-exact weight isn't needed at this business's scale.
+- `spec: cart & checkout` (`specs/003-cart-checkout/`) — ran
+  `/speckit-specify` for feature 3. Three prioritized user stories (P1
+  build/review a cart, P2 an accurate checkout total with promo/tax/
+  shipping, P3 pay via PayPal with a webhook-verified paid order), 15
+  functional requirements, 5 measurable success criteria, zero
+  `[NEEDS CLARIFICATION]` markers. Finalizes **TaxJar** as the tax
+  provider (the constitution's prior "leaning TaxJar" note is now a
+  real decision). Explicitly excludes admin promotion/shipping/tax
+  configuration UI and the customer-facing confirmation page — both
+  separate, later features. Flags a real Cart (live-recomputed) vs.
+  Order (frozen historical snapshot) distinction for planning. Quality
+  checklist passed clean on the first pass. Next: `/speckit-plan`.

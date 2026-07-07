@@ -17,7 +17,7 @@ begins — everything else follows the customer-facing flow order.
 | — | Project setup | ✅ Scaffolded | Next.js app, TypeScript/Tailwind/Zod, PostgreSQL via Drizzle, a `/api/health` check, and CI all wired up and passing. |
 | 1 | Admin: product management | 🧩 Tasked | Auth.js/Google-SSO-gated admin shell + Products list + Product Editor (variant/pricing config, 1..n images) — enough to load real products. |
 | 2 | Catalog & browsing | 🧩 Tasked | A public storefront (browse by category + product detail with live pricing) reading real Active products seeded via #1. No cart yet. |
-| 3 | Cart & checkout | Not started | Add to cart (with promotions/discounts), tax + shipping calculated, pay via a server-validated, webhook-verified PayPal flow (Stripe is a planned fast-follow). |
+| 3 | Cart & checkout | 📝 Specified | Cart (P1), accurate checkout total with promo/tax/shipping (P2), and a server-validated, webhook-verified PayPal payment (P3). Stripe is a planned fast-follow. |
 | 4 | Order confirmation | Not started | Customer sees confirmation; the order is recorded once the payment webhook is verified. |
 | 5 | Admin: orders, discounts, shipping & fees | Not started | Order queue/detail (fulfillment), promotion management, and shipping/tax settings — sequenced with/after checkout since they're not useful until real orders exist. |
 
@@ -60,7 +60,10 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 
 - **2026-07-07** — Caught one more feature 1 gap while scoping feature 3 (cart & checkout): the constitution already commits to calculated/carrier-rate shipping for MVP, but `Product` had no weight or package dimensions — the data a shipping-rate API needs to quote a real rate. Amended feature 1 (FR-017, `data-model.md`, `contracts/actions.md`, `tasks.md`) to add optional `weightOz`/`lengthIn`/`widthIn`/`heightIn` fields — one packaged value per product, not per option/size, which is accurate enough at this business's scale.
 
+- **2026-07-07** — Ran `/speckit-specify` for feature 3: [specs/003-cart-checkout/spec.md](specs/003-cart-checkout/spec.md). Three prioritized user stories (P1 build/review a cart, P2 an accurate checkout total with promo/tax/shipping, P3 pay via PayPal with a webhook-verified paid order), 15 functional requirements, 5 measurable success criteria, zero `[NEEDS CLARIFICATION]` markers. Finalizes the tax provider as **TaxJar** (the constitution's prior "leaning TaxJar" note, now a real decision since checkout needs an actual number). Explicitly scopes out admin promotion/shipping/tax configuration UI and the customer-facing confirmation page — both separate, later features (5 and 4). Key Entities flag a real Cart-vs-Order distinction (live-recomputed vs. frozen historical snapshot) for planning to pick up. Quality checklist passed clean on the first pass.
+
 ## Next steps
 
-1. Move to `/speckit-specify` for feature 3 (cart & checkout), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.
-2. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.
+1. Run `/speckit-plan` for feature 3 (cart & checkout).
+2. Once planned and tasked, move to `/speckit-specify` for feature 4 (order confirmation), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.
+3. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.
