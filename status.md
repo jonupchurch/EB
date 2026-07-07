@@ -18,7 +18,7 @@ begins — everything else follows the customer-facing flow order.
 | 1 | Admin: product management | 🧩 Tasked | Auth.js/Google-SSO-gated admin shell + Products list + Product Editor (variant/pricing config, 1..n images) — enough to load real products. |
 | 2 | Catalog & browsing | 🧩 Tasked | A public storefront (browse by category + product detail with live pricing) reading real Active products seeded via #1. No cart yet. |
 | 3 | Cart & checkout | 🧩 Tasked | Cart (P1), accurate checkout total with promo/tax/shipping (P2), and a server-validated, webhook-verified PayPal payment (P3). Stripe is a planned fast-follow. |
-| 4 | Order confirmation | Not started | Customer sees confirmation; the order is recorded once the payment webhook is verified. |
+| 4 | Order confirmation | 📝 Specified | A real confirmation page (line items, breakdown, status timeline, handles a still-verifying payment gracefully) plus a one-time confirmation email via Resend. |
 | 5 | Admin: orders, discounts, shipping & fees | Not started | Order queue/detail (fulfillment), promotion management, and shipping/tax settings — sequenced with/after checkout since they're not useful until real orders exist. |
 
 Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md) for the reasoning): a live product customizer / upload-your-own-design / custom-design tool (the priority fast-follow right after MVP), any AI-assisted feature, extra admin roles, inventory tracking, reviews, wishlists, multi-currency, or subscriptions.
@@ -66,7 +66,10 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 
 - **2026-07-07** — Ran `/speckit-tasks` for feature 3: [tasks.md](specs/003-cart-checkout/tasks.md). 32 tasks — Setup (dependencies + 4 ADRs), a substantial Foundational phase (schema, the checkout rate limiter, the cart-cookie helper, and all four external-integration modules — tax, shipping, promotions, PayPal — each with a deterministic test fake from the start), then the three user stories in priority order (US1 cart is the independently-shippable MVP slice), and a Polish phase that also folds a concrete checkout-step-transition target back into `docs/non-functional.md`. Explicitly noted: this is the first feature whose tasks depend on features 1–2 being *implemented*, not just planned, since it imports their code directly (`src/lib/pricing.ts`, feature 2's product-availability logic).
 
+- **2026-07-07** — Ran `/speckit-specify` for feature 4: [specs/004-order-confirmation/spec.md](specs/004-order-confirmation/spec.md). Three prioritized user stories (P1 an accurate confirmation page right after paying, including graceful handling of a still-verifying payment; P2 a one-time confirmation email once paid, via **Resend** — confirmed with Jon before drafting; P3 the page working correctly on a later revisit via a saved link), 12 functional requirements, 4 measurable success criteria, zero `[NEEDS CLARIFICATION]` markers. Flags the confirmation URL's own unguessability as a real security requirement, not cosmetic, since no customer account system exists anywhere in this project. Adds no new core entity — just a small "email already sent" flag on feature 3's Order. Quality checklist passed clean on the first pass.
+
 ## Next steps
 
-1. Move to `/speckit-specify` for feature 4 (order confirmation), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.
-2. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.
+1. Run `/speckit-plan` for feature 4 (order confirmation).
+2. Once planned and tasked, move to `/speckit-specify` for feature 5 (admin: orders, discounts, shipping & fees) — the last MVP feature — per the confirmed plan-all-before-implement workflow.
+3. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.

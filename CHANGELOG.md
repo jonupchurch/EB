@@ -387,3 +387,15 @@ the product and its architecture evolved.
   that this feature's tasks depend on features 1–2 being *implemented*
   already, not just planned, since it imports their code directly.
   Next: `/speckit-specify` for feature 4 (order confirmation).
+- `spec: order confirmation` (`specs/004-order-confirmation/`) — ran
+  `/speckit-specify` for feature 4. Three prioritized user stories (P1
+  an accurate confirmation page right after paying, gracefully
+  handling a still-verifying payment; P2 a one-time confirmation email
+  via **Resend**, confirmed with Jon before drafting; P3 the page
+  working correctly on a later revisit), 12 functional requirements, 4
+  measurable success criteria, zero `[NEEDS CLARIFICATION]` markers.
+  Flags the confirmation URL's own unguessability as a genuine security
+  requirement, since no customer account system exists. Adds no new
+  core entity, just a small "email already sent" flag on feature 3's
+  Order. Quality checklist passed clean on the first pass. Next:
+  `/speckit-plan`.
