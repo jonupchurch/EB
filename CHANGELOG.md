@@ -527,3 +527,22 @@ the product and its architecture evolved.
   Confirmed live: `/api/auth/signin` now returns 200 and shows only
   "Sign in with Google" — the test-only Credentials provider correctly
   stays inactive outside Playwright's own e2e run.
+- `fix: post-login redirect and production migration gap` — two real
+  bugs Jon found signing in live. Signing in from `/admin/products`
+  bounced to the homepage (the layout's redirect to sign-in never
+  passed a `callbackUrl`) — fixed with `src/proxy.ts` (Next.js 16's
+  current convention, replacing the now-deprecated `middleware.ts`),
+  redirecting unauthenticated `/admin/*` requests to sign-in with the
+  actually-requested path preserved. `/admin/products`/`/new` both
+  500'd with `relation "categories" does not exist` — feature 1's
+  migration was only ever applied to local Postgres, never to
+  production Neon, and `/api/health`'s `select 1` never would have
+  caught that. Since Neon's `DATABASE_URL` is a Marketplace Sensitive
+  secret (unreadable via `vercel env pull`, unavailable at build
+  time), added `POST /api/admin/migrate` — a `MIGRATE_SECRET`-gated
+  internal ops route that runs Drizzle's `migrate()` against the real
+  runtime connection — plus a `next.config.ts`
+  `outputFileTracingIncludes` entry so `drizzle/*.sql` actually ships
+  in that route's function bundle. Ran it against Production; verified
+  live: correct `callbackUrl` redirect, `/admin/products` loads, and
+  re-running the migrate endpoint is safely idempotent.
