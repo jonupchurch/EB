@@ -21,9 +21,9 @@
 /test-results/
 /blob-report/
 
-# env files (never commit secrets)
-.env
-.env*.local
+# env files (never commit secrets) -- catches .env, .env.local,
+# .env.vercel-preview, etc.; the negation must stay last so it wins.
+.env*
 !.env.example
 
 # vercel
