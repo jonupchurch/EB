@@ -358,3 +358,21 @@ the product and its architecture evolved.
   separate, later features. Flags a real Cart (live-recomputed) vs.
   Order (frozen historical snapshot) distinction for planning. Quality
   checklist passed clean on the first pass. Next: `/speckit-plan`.
+- `plan: cart & checkout` (`specs/003-cart-checkout/`) — ran
+  `/speckit-plan`. Closed two long-open constitution follow-ups:
+  **TaxJar** for sales tax, **Shippo** for calculated/carrier-rate
+  shipping (chosen after confirming a later provider swap stays
+  contained — one interface, one module). Decided the cart is a
+  client-held cookie reference, never a server table (research.md's
+  "Cart architecture" decision) — nothing is persisted until an Order
+  exists. Decided PayPal integration is direct REST calls (Orders v2 +
+  Webhooks), no SDK, for full transparency around webhook signature
+  verification. `order_items` deliberately snapshots as JSON at
+  purchase time — the one considered exception to this project's
+  typed-table preference, since a paid order is history, not live
+  data. Four new ADRs owed: 0011 (cart architecture), 0012 (TaxJar),
+  0013 (Shippo), 0014 (PayPal REST integration). Added `contracts/actions.md`
+  (cart/checkout Server Actions plus the PayPal webhook Route Handler)
+  and `quickstart.md`. Added `TAXJAR_API_KEY`/`SHIPPO_API_KEY` to
+  `.env.example`/`.env.local`. Constitution Check passed with no
+  violations.
