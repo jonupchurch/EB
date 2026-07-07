@@ -240,3 +240,24 @@ the product and its architecture evolved.
   per option category, over a generic key-value table or a JSON blob),
   to be authored during `/speckit-tasks`/implementation. Constitution
   Check re-passed after design with no violations.
+- `fix: connect to Postgres lazily, not at module import` (`4dc0cd8`)
+  — provisioned **Neon** Postgres and **Vercel Blob** via the Vercel
+  Marketplace, connected to the `ericaburnsthings` project's Production/
+  Preview environments. Linking and verifying the connection surfaced a
+  real bug: `src/db/index.ts` validated `DATABASE_URL` and connected to
+  Postgres eagerly at module import time — but Marketplace-provisioned
+  secrets are runtime-only and aren't present during `next build`'s
+  page-data collection step (which imports every route module), so
+  every Production build failed with "DATABASE_URL is not set" despite
+  the variable being correctly configured. Fixed by making the client
+  connect lazily on first query, via a `Proxy`-wrapped `db` export.
+  Verified end-to-end: a fresh Production deployment builds
+  successfully and `GET /api/health` on the live deployment returns
+  `{"status":"ok","db":"connected"}`. Also cleaned up a `.gitignore`
+  env-file pattern that `vercel link` had re-broken (the negation must
+  stay last to win). Recorded as [ADR-0008](docs/adr/0008-neon-for-hosted-postgres.md)
+  — closes the constitution's "choose hosted Postgres provider"
+  follow-up (constitution v1.0.0 → v1.0.1, patch). Vercel Blob is
+  provisioned but not yet fully connected: no `BLOB_READ_WRITE_TOKEN`
+  exists yet (only `BLOB_STORE_ID`/`BLOB_WEBHOOK_PUBLIC_KEY`) — needs a
+  dashboard-side fix before it can be verified the same way.

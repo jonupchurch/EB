@@ -16,5 +16,6 @@ Format: lightweight [MADR](https://adr.github.io/madr/). Status is one of
 | [0004](0004-darken-muted-text-token.md) | Darken the muted/secondary text token from #9A9088/#8A8378 to #6B6560 | Accepted |
 | [0005](0005-paypal-for-mvp-payments.md) | PayPal for MVP payments, Stripe deferred to a fast-follow | Accepted |
 | [0006](0006-authjs-for-google-sso.md) | Auth.js for Google SSO (admin queue) | Accepted |
+| [0008](0008-neon-for-hosted-postgres.md) | Neon for hosted/production Postgres | Accepted |
 
 New decision? Copy `0000-template.md`.

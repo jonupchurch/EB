@@ -1,34 +1,20 @@
 <!--
 Sync Impact Report
 ==================
-Version change: N/A → 1.0.0 (initial ratification)
-Modified principles: N/A (initial creation)
-Added principles:
-  - I. Spec-Driven Development & Legible Architecture
-  - II. Full-Stack Substance & Trustworthy Commerce
-  - III. Designed, Accessible Experience
-  - IV. Product Judgment & Scope Discipline
-  - V. Test Discipline
-  - VI. Legible History
-Added sections: Technology Constraints, Development Workflow, Governance
+Version change: 1.0.0 → 1.0.1 (patch: follow-up TODO resolved)
+Modified principles: none
+Added principles: none
+Added sections: none
 Removed sections: none
-Other changes: this version was drafted over 2026-07-06 to 2026-07-07,
-  refined against real brand assets, product models, and wireframes as
-  they arrived rather than written once and frozen — see CHANGELOG.md
-  and status.md for the full blow-by-blow of what changed and why.
-  Settled along the way: PostgreSQL + Drizzle (ADR-0001, ADR-0002),
-  PayPal for MVP payments with Stripe as a fast-follow (ADR-0005),
-  Auth.js for Google SSO (ADR-0006), an MVP scope expanded to include
-  promotions/discounts and tax/shipping calculation, and an
-  accessibility bar that's a target rather than a compliance gate
-  (Principle III). Ratified 2026-07-07.
+Other changes: resolved the "choose a hosted/production Postgres
+  provider" follow-up — Neon, provisioned via the Vercel Marketplace
+  (docs/adr/0008-neon-for-hosted-postgres.md), verified end-to-end
+  against the deployed Production environment on 2026-07-07.
 Templates requiring updates:
   ✅ .specify/templates/plan-template.md — no hardcoded principle names.
   ✅ .specify/templates/spec-template.md — compatible.
   ✅ .specify/templates/tasks-template.md — compatible.
 Follow-up TODOs:
-  - Choose a hosted/production Postgres provider when deployment is
-    actually being set up (docs/adr/0001-postgres-persistence.md).
   - Choose a tax-calculation API provider — leaning TaxJar given Ohio's
     county-level rate variation (a flat/hand-rolled rate isn't safe
     even for in-state orders), pending a final check on Erica's exact
@@ -38,6 +24,14 @@ Follow-up TODOs:
     ADR owed during the cart/checkout feature's planning.
   - Scope and plan the Stripe fast-follow integration once PayPal MVP
     checkout is live (docs/adr/0005-paypal-for-mvp-payments.md).
+
+Prior report (v1.0.0, initial ratification, 2026-07-06 to 2026-07-07):
+  added all six Core Principles (Spec-Driven Development & Legible
+  Architecture; Full-Stack Substance & Trustworthy Commerce; Designed,
+  Accessible Experience; Product Judgment & Scope Discipline; Test
+  Discipline; Legible History) plus Technology Constraints, Development
+  Workflow, and Governance — see CHANGELOG.md and status.md for the
+  full drafting history.
 -->
 
 # Printing Website Constitution
@@ -216,13 +210,12 @@ shadcn/ui only as a restyled base — components MUST NOT ship at default
 appearance (see Principle III). Persistence is a real, durable database
 from day one (products, carts/orders, fulfillment state) — unlike a
 stateless-by-default MVP, durable storage is the expected baseline
-here, not a deviation requiring justification. Database: PostgreSQL, a
-local instance for development, queried through Drizzle (see
+here, not a deviation requiring justification. Database: PostgreSQL —
+a local instance for development, **Neon** (via the Vercel Marketplace)
+for Production/Preview — queried through Drizzle (see
 `docs/adr/0001-postgres-persistence.md`,
-`docs/adr/0002-drizzle-orm.md`) — a hosted/production provider (e.g.
-via the Vercel Marketplace) is still an open decision, owed its own ADR
-when chosen, including a serverless-appropriate connection strategy
-(see ADR-0002 Consequences). Payments: **PayPal** for MVP (see
+`docs/adr/0002-drizzle-orm.md`,
+`docs/adr/0008-neon-for-hosted-postgres.md`). Payments: **PayPal** for MVP (see
 `docs/adr/0005-paypal-for-mvp-payments.md`) — Stripe is deferred to a
 fast-follow integration, not abandoned; server-side only, every
 webhook signature verified before use (Principle II). Tax: sales tax is
@@ -285,4 +278,4 @@ per Principle I, this project's committed ADRs, specs, and plans are
 authored (or substantively reconciled) through this project's own
 process, so the "process produced this" record stays genuine.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-07 | **Last Amended**: 2026-07-07
+**Version**: 1.0.1 | **Ratified**: 2026-07-07 | **Last Amended**: 2026-07-07
