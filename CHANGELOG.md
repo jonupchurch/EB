@@ -463,3 +463,23 @@ the product and its architecture evolved.
   admin queue existed. Added `contracts/actions.md` (orders, promotions,
   shipping settings Server Actions) and `quickstart.md`. Constitution
   Check passed with no violations.
+- `fix: add feature 3's missing Playwright e2e task` — while drafting
+  feature 5's tasks, found that feature 3's `tasks.md` never actually
+  created the Playwright e2e task its own `plan.md` had committed to
+  (features 1, 2, and 4 each have one). Added `e2e/cart-checkout.spec.ts`
+  as feature 3's new T028 (the full browse -> cart -> checkout -> pay
+  vertical slice via the fake PayPal provider), renumbering its Polish
+  phase (T028-T032 -> T029-T033). Zero cost -- feature 3 isn't
+  implemented yet.
+- `tasks: admin orders, discounts, shipping & fees` (`specs/005-admin-orders-discounts/tasks.md`)
+  — ran `/speckit-tasks`. 21 tasks: a nearly-empty Setup (no new
+  dependencies or ADRs), a 3-task Foundational phase (`shop_settings`),
+  then US1 (order queue/fulfillment — the MVP slice), US2 (promotion
+  CRUD), and US3 (the flat shipping rate — deliberately thin, matching
+  its own P3 rationale), plus Polish. Polish adds
+  `e2e/full-vertical-slice.spec.ts` — the one happy-path end-to-end
+  test Constitution Principle V has required since ratification,
+  finally completable now that the admin queue exists.
+
+**All five MVP features are now specified, planned, and tasked.** Next:
+`/speckit-implement`, starting with feature 1's `tasks.md`.

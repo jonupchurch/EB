@@ -101,6 +101,7 @@
 - [ ] T025 [US3] Implement `createOrderAndPayment(shippingAddress, shippingMethod, promoCode?)` Server Action in `src/app/(storefront)/checkout/actions.ts` — recomputes the total fresh (never trusts `getCheckoutSummary`'s earlier result, FR-011); creates a `placed` Order (with a random, non-sequential `confirmationToken` — feature 4's URL identifier) plus its frozen `order_items` snapshot (`data-model.md`); creates a PayPal order via `paypal.ts` (T016) for that exact total; returns the approval URL — depends on T012–T016, T022 (same file)
 - [ ] T026 [US3] Implement `src/app/api/webhooks/paypal/route.ts` — verifies the signature via `paypal.ts` (T016); on a verified capture-completed event, sets the matching order's `status` to `paid` and `paidAt`, idempotently (FR-012, FR-013, FR-015) — depends on T016
 - [ ] T027 [US3] Wire the checkout page's payment step — redirect to PayPal's approval URL (T025), handle the return redirect, and show a minimal acknowledgment (the real confirmation experience is a separate, later feature) — per `Resources/wireframes/Checkout & Confirmation.html` — depends on T023, T025
+- [ ] T028 [US3] Playwright e2e in `e2e/cart-checkout.spec.ts` — the full vertical slice this feature's plan.md Testing section commits to: browse a feature-2-seeded product → add to cart, adjust quantity → checkout with shipping info and a promo code → pay via the fake PayPal provider → confirm the resulting order is created and marked `paid` only once the fake webhook is verified — depends on T018–T020, T022–T023, T025–T027
 
 **Checkpoint**: All three user stories are independently functional — the full cart-to-paid-order flow works end-to-end.
 
@@ -108,11 +109,11 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T028 [P] Run `quickstart.md`'s manual validation scenarios 1–11 (add/adjust/remove, always-fresh pricing, unavailable-item detection, checkout breakdown, promo code accept/reject, empty-cart block, webhook-verified payment, stale-total protection, delayed webhook, privacy/security check)
-- [ ] T029 [P] Accessibility spot-check of the real built cart/checkout UI against the already-reviewed wireframe tokens (ADR-0003/ADR-0004) — confirm the implementation introduces no new contrast regressions (Principle III: target, not a blocking gate)
-- [ ] T030 [P] Fold the concrete "Checkout step transition" target (plan.md's Performance Goals: <1.5s) back into `docs/non-functional.md`'s previously-TBD row
-- [ ] T031 Run `npm run typecheck && npm run lint && npm run test && npm run test:e2e` — all four MUST pass (Principle V) — depends on all prior tasks
-- [ ] T032 Update `status.md` and `CHANGELOG.md` marking feature 3 (cart & checkout) implemented — depends on T031
+- [ ] T029 [P] Run `quickstart.md`'s manual validation scenarios 1–11 (add/adjust/remove, always-fresh pricing, unavailable-item detection, checkout breakdown, promo code accept/reject, empty-cart block, webhook-verified payment, stale-total protection, delayed webhook, privacy/security check)
+- [ ] T030 [P] Accessibility spot-check of the real built cart/checkout UI against the already-reviewed wireframe tokens (ADR-0003/ADR-0004) — confirm the implementation introduces no new contrast regressions (Principle III: target, not a blocking gate)
+- [ ] T031 [P] Fold the concrete "Checkout step transition" target (plan.md's Performance Goals: <1.5s) back into `docs/non-functional.md`'s previously-TBD row
+- [ ] T032 Run `npm run typecheck && npm run lint && npm run test && npm run test:e2e` — all four MUST pass (Principle V) — depends on all prior tasks
+- [ ] T033 Update `status.md` and `CHANGELOG.md` marking feature 3 (cart & checkout) implemented — depends on T032
 
 ---
 
@@ -133,12 +134,14 @@
 - Tests (where included) before the implementation they cover
 - The four `src/lib/checkout/*.ts` modules (T012–T016) before any Server Action that composes them
 - `src/app/(storefront)/checkout/actions.ts` is touched by both T022 (US2) and T025 (US3) — sequential relative to each other even though not explicitly marked, to avoid same-file conflicts
+- T028 (the e2e test) depends on the full US1–US3 implementation chain, not just US3's own tasks
 
 ### Parallel Opportunities
 
 - T001–T006 (Setup) — different files
 - T010, T011, T013, T014, T015, T016 (Foundational) — different files, no unfinished dependency
 - T017 (US1 test), T021 (US2 test), T024 (US3 test) — each is the only test task in its own phase
+- T029, T030, T031 (Polish) — different concerns, no file conflict
 
 ---
 
