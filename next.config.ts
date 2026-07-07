@@ -14,6 +14,16 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/admin/migrate": ["./drizzle/**"],
   },
+  // Next's own Server Action body limit defaults to 1MB, well under a
+  // real phone photo — addProductImage (product-images.ts) uploads
+  // files as FormData through a Server Action, so this must be raised
+  // independently of Vercel Functions' own (much higher) request-body
+  // limit.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
 };
 
 export default nextConfig;

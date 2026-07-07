@@ -108,6 +108,11 @@ export interface ProductEditorSubmitPayload {
   designLocationOptions: Array<{ label: string; priceAdjustmentCents: number }>;
 }
 
+// Matches next.config.ts's experimental.serverActions.bodySizeLimit —
+// a friendly client-side check so an oversized file shows a clear
+// message instead of a generic 413 from the framework's own limit.
+const MAX_IMAGE_BYTES = 10_000_000;
+
 interface ProductEditorProps {
   categories: { id: number; name: string }[];
   initial?: ProductEditorInitialData;
@@ -218,8 +223,14 @@ export function ProductEditor({
 
   async function handleImageUpload(file: File) {
     if (!productId) return;
-    setUploading(true);
     setImageError(null);
+    if (file.size > MAX_IMAGE_BYTES) {
+      setImageError(
+        `That image is ${(file.size / 1_000_000).toFixed(1)}MB — please choose one under ${MAX_IMAGE_BYTES / 1_000_000}MB.`,
+      );
+      return;
+    }
+    setUploading(true);
     try {
       const formData = new FormData();
       formData.set("file", file);
