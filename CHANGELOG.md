@@ -546,3 +546,18 @@ the product and its architecture evolved.
   in that route's function bundle. Ran it against Production; verified
   live: correct `callbackUrl` redirect, `/admin/products` loads, and
   re-running the migrate endpoint is safely idempotent.
+- `fix: price input typing and silent image-upload failures` — Jon
+  found the base price field fought his typing (`.toFixed(2)`
+  reformatting on every keystroke). Replaced all four currency inputs
+  with a shared `PriceInput` component keeping its own local text
+  buffer, only reformatting on blur — verified with real
+  character-by-character typing, not `.fill()`. Also found and fixed
+  image upload/removal/reorder having no error handling: a thrown
+  error left the UI stuck in a loading state forever with zero
+  feedback, matching Jon's report that adding an image "opens the file
+  browser but never updates." Added try/catch with a visible error
+  message client-side, plus server-side error handling in
+  `addProductImage` so a Blob failure returns a specific message
+  instead of Next's generic obfuscated production error. Deployed; the
+  price fix is confirmed live. Image upload needs Jon to retest —
+  previously-silent failures should now surface a real error message.
