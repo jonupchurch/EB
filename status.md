@@ -15,7 +15,7 @@ begins — everything else follows the customer-facing flow order.
 | # | Feature | Status | One-liner |
 |---|---|---|---|
 | — | Project setup | ✅ Scaffolded | Next.js app, TypeScript/Tailwind/Zod, PostgreSQL via Drizzle, a `/api/health` check, and CI all wired up and passing. |
-| 1 | Admin: product management | Not started | Auth.js/Google-SSO-gated admin shell + Products list + Product Editor (variant/pricing config) — enough to load real products. |
+| 1 | Admin: product management | 📝 Spec drafted | Auth.js/Google-SSO-gated admin shell + Products list + Product Editor (variant/pricing config) — enough to load real products. |
 | 2 | Catalog & browsing | Not started | A fixed catalog of ready-made products (shirts, mugs, wood designs) with size/color/material variants, reading real data seeded via #1. |
 | 3 | Cart & checkout | Not started | Add to cart (with promotions/discounts), tax + shipping calculated, pay via a server-validated, webhook-verified PayPal flow (Stripe is a planned fast-follow). |
 | 4 | Order confirmation | Not started | Customer sees confirmation; the order is recorded once the payment webhook is verified. |
@@ -43,7 +43,9 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 - **2026-07-07** — Decided the build order: admin product management ships first (Auth.js shell + Products list + Product Editor), specifically so real products can be loaded before any storefront work begins. The rest of admin (order queue, discounts, shipping & fees settings) moves to sequence with/after checkout instead, since none of it is useful until real orders exist. Updated the feature table above to match.
 - **2026-07-07** — **Ratified the constitution, v1.0.0.** Closed out the Sync Impact Report's drafting narrative (the day-and-a-half of refinement is preserved in `CHANGELOG.md`/this file, not repeated in the constitution itself) and updated the version/ratified date. All six ADRs, the expanded MVP scope, and the softened accessibility bar are now the settled ground rules, not a moving draft.
 
+- **2026-07-07** — Ran `/speckit-specify` for feature 1: [specs/001-admin-product-management/spec.md](specs/001-admin-product-management/spec.md). Four prioritized user stories (create a product P1, view the products list P2, edit an existing product P3, duplicate a product P4), 13 functional requirements, 5 measurable success criteria. No `[NEEDS CLARIFICATION]` markers needed — the ratified constitution, accepted ADRs, and reviewed wireframes/product models already covered every ambiguous point with a documented, informed default. Quality checklist passed clean on the first pass.
+
 ## Next steps
 
-1. Run `/speckit-specify` for feature 1 (admin product management) — the app now runs, but no product feature has gone through the Spec Kit cycle yet.
-2. Work through the rest of the MVP feature list above in order, each through the full spec → plan → tasks → implement cycle, per the confirmed plan-all-before-implement workflow.
+1. Run `/speckit-plan` for feature 1 (admin product management).
+2. Once planned and tasked, move to `/speckit-specify` for feature 2 (catalog & browsing), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.

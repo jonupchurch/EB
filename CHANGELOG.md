@@ -217,3 +217,14 @@ the product and its architecture evolved.
   Refreshed `README.md` to match (PayPal/Auth.js named directly, ADR
   count updated, build-order note added). Next: `/speckit-specify` for
   feature 1, admin product management.
+- `spec: admin product management` (`specs/001-admin-product-management/`)
+  — ran `/speckit-specify` for feature 1. Four prioritized user stories
+  (create a product P1, view the products list P2, edit an existing
+  product P3, duplicate a product P4), 13 functional requirements, 5
+  measurable success criteria, and a documented set of assumptions
+  (evolvable category list, no hard delete, Draft products never
+  customer-visible). No `[NEEDS CLARIFICATION]` markers needed — the
+  ratified constitution, accepted ADRs, and reviewed wireframes/product
+  models already had informed defaults for every ambiguous point.
+  Quality checklist (`checklists/requirements.md`) passed clean on the
+  first pass. Next: `/speckit-plan`.
