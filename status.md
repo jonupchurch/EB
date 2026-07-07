@@ -58,6 +58,8 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 
 - **2026-07-07** — Ran `/speckit-tasks` for feature 2: [tasks.md](specs/002-catalog-browsing/tasks.md). 17 tasks — a lean Setup+Foundational (an ADR, a placeholder image asset, real branding metadata, and the storefront route-group shell), then the two user stories in priority order (US1 browse is the independently-shippable MVP slice; US2 adds product detail + accurate live pricing, reusing feature 1's pricing function outright), and a Polish phase that also folds a concrete LCP target back into `docs/non-functional.md`'s previously-TBD row. No new database tables and no new Server Actions anywhere in this feature — it's a pure read layer.
 
+- **2026-07-07** — Caught one more feature 1 gap while scoping feature 3 (cart & checkout): the constitution already commits to calculated/carrier-rate shipping for MVP, but `Product` had no weight or package dimensions — the data a shipping-rate API needs to quote a real rate. Amended feature 1 (FR-017, `data-model.md`, `contracts/actions.md`, `tasks.md`) to add optional `weightOz`/`lengthIn`/`widthIn`/`heightIn` fields — one packaged value per product, not per option/size, which is accurate enough at this business's scale.
+
 ## Next steps
 
 1. Move to `/speckit-specify` for feature 3 (cart & checkout), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.

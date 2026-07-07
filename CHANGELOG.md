@@ -338,3 +338,11 @@ the product and its architecture evolved.
   No new database tables or Server Actions anywhere in this feature —
   a pure read layer over feature 1's data. Next: `/speckit-specify` for
   feature 3 (cart & checkout).
+- `docs: amend admin product management for shipping weight/dimensions`
+  — while scoping feature 3, caught that `Product` had no weight or
+  package dimensions despite the constitution already committing to
+  calculated/carrier-rate shipping for MVP. Amended feature 1 (FR-017,
+  `data-model.md`, `contracts/actions.md`'s `createProduct` input,
+  `tasks.md`) to add optional `weightOz`/`lengthIn`/`widthIn`/`heightIn`
+  fields — one packaged value per product, not per option, since
+  per-size-exact weight isn't needed at this business's scale.

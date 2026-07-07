@@ -30,6 +30,8 @@ The sellable item itself.
 | `description` | text, nullable | Optional at save time |
 | `basePriceCents` | integer | **Required** (FR-011), ≥ 0 |
 | `status` | enum: `active` \| `draft` | Default `draft` (FR-006). Draft rows MUST never be readable by any future customer-facing query (FR-007) |
+| `weightOz` | integer, nullable | Packaged shipping weight in whole ounces (FR-017). Nullable — not part of FR-011's save minimum |
+| `lengthIn` / `widthIn` / `heightIn` | integer, nullable | Packaged shipping dimensions in whole inches, rounded up (FR-017). Nullable for the same reason |
 | `createdAt` / `updatedAt` | timestamp | |
 
 **Computed, not stored**: "variant count" (shown in the products list,

@@ -37,7 +37,9 @@ Run `npm run dev`, sign in at `/admin` with an authorized Google account:
    a name, category, description, and base price; add at least one
    priced option (e.g., a size with an upcharge). Confirm the running
    total updates immediately as the option is added, and equals base
-   price + adjustment.
+   price + adjustment. Optionally set a weight and package dimensions
+   (FR-017) and confirm they persist on reload — leave them blank on a
+   different product and confirm that still saves successfully.
 3. **Save validation (FR-011, FR-012, Edge Cases)**: attempt to save a
    product with no name, then with no base price. Confirm each attempt
    is rejected with a specific, field-level error — not a silent

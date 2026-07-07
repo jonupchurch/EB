@@ -58,7 +58,7 @@ error and performs no read or write.
 ## `createProduct(input)`
 
 - **Purpose**: create a new product (US1).
-- **Input**: Zod-validated — `name` (required), `basePriceCents` (required, ≥ 0), `description` (optional), `categoryId` (optional, must reference an existing category if present), `status` (`active` \| `draft`, default `draft`), and arrays of option rows for each of the six option categories (each may be empty).
+- **Input**: Zod-validated — `name` (required), `basePriceCents` (required, ≥ 0), `description` (optional), `categoryId` (optional, must reference an existing category if present), `status` (`active` \| `draft`, default `draft`), `weightOz`/`lengthIn`/`widthIn`/`heightIn` (all optional, FR-017), and arrays of option rows for each of the six option categories (each may be empty).
 - **Output**: `{ id }` of the newly created product on success.
 - **Errors**: `validation_error` with field-level detail (FR-011/FR-012) if `name` or `basePriceCents` is missing/invalid, or if `categoryId` doesn't resolve. Nothing is partially saved on failure — the product and all its option rows are created in one transaction, or none are.
 
