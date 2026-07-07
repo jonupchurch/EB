@@ -575,3 +575,13 @@ the product and its architecture evolved.
   clear, specific message on an oversized file. Deployed and confirmed
   live (health check + build both green); awaiting Jon's retest with a
   real photo.
+- `fix: replace native file input with a styled upload button` —
+  image upload confirmed working live. Jon's follow-up feedback: the
+  plain browser file input ("Choose File / No file chosen") didn't
+  look like a button, and the "No file chosen" text misleadingly stuck
+  around even after a successful upload. Replaced with the standard
+  accessible pattern — a visually-hidden file input paired with a
+  styled `<label>` acting as the button ("+ Add photo" / "Uploading…").
+  Verified locally: correct button text, no leftover native-input
+  text, clicking the label opens the file chooser correctly. Deployed
+  and confirmed live.

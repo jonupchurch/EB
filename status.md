@@ -92,6 +92,8 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 
 - **2026-07-07** — The previous fix made the image-upload failure visible instead of silent, and that surfaced the real cause: `Error: Body exceeded 1 MB limit` (Vercel runtime logs). Next.js caps Server Action request bodies at 1MB by default — `addProductImage` uploads a file as `FormData` through a Server Action, so any real photo (routinely several MB from a phone) was rejected by the framework itself, before the action code (and its try/catch) ever ran. Raised `experimental.serverActions.bodySizeLimit` to `10mb` in `next.config.ts`, and added a matching client-side file-size check so an oversized file shows a clear, specific message instead of hitting the limit. Deployed and confirmed live (health check + build both green); awaiting Jon's retest with a real photo.
 
+- **2026-07-07** — Image upload confirmed working live. Jon's follow-up feedback: the plain browser file input ("Choose File / No file chosen") didn't look like a button, and the "No file chosen" text misleadingly stuck around even after a successful upload (the image already showed in the gallery above it). Replaced with the standard accessible pattern — a visually-hidden file input paired with a styled `<label>` acting as the button ("+ Add photo" / "Uploading…"). Verified locally: correct button text, no leftover native-input text, and clicking the label correctly opens the file chooser. Deployed and confirmed live.
+
 ## Next steps
 
 1. Run `/speckit-implement` for feature 2 (catalog & browsing) — feature 1 is implemented and its `src/lib/pricing.ts`/schema are ready to be read by the storefront.
