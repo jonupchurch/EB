@@ -83,3 +83,17 @@ as an exception here (not fixed) — but if this token shows up failing
 a fourth time, or anywhere even more central (e.g. actual product
 descriptions, prices), that's the point to stop accepting and just
 darken the token instead of re-litigating this each time.
+
+## Superseded (in part) by ADR-0004
+
+It did recur — five more times in `Resources/wireframes/Admin
+Screens.html`, including on table column headers and price-field
+currency symbols. Per the threshold stated above, that's the point:
+[ADR-0004](0004-darken-muted-text-token.md) darkens the underlying
+token (`#9A9088`/`#8A8378`/`#7C756C` → `#6B6560`) instead of adding a
+ninth exception here. The gray-family instances in this ADR (the
+promo-code/product-photo pairings above, and the category-label
+pairing in the Update) are resolved by that fix, not just excepted —
+this ADR stays as the historical record. The *other* exceptions here
+(the checkmark-on-teal icons, the breadcrumb separator) are unrelated
+to the gray token and remain accepted as-is.

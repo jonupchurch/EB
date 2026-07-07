@@ -127,3 +127,20 @@ the product and its architecture evolved.
   electronics) than the handful of example products used in wireframes
   so far — noted in `status.md` as relevant context for scoping the
   catalog feature later.
+- `docs: fix the muted-gray contrast token, clarify custom-design scope`
+  — added `Resources/wireframes/Admin Screens.html` (orders queue,
+  order detail, products list, product editor, discounts, shipping &
+  fees). The recurring `#9A9088`/`#8A8378`/`#7C756C` contrast failure
+  hit table column headers and price-field currency symbols this time
+  — core, unavoidable UI — crossing the threshold ADR-0003 set for
+  when to stop excepting it. Accepted
+  [ADR-0004](docs/adr/0004-darken-muted-text-token.md): darken the
+  muted-text token to `#6B6560` (already used successfully elsewhere in
+  the same wireframes, verified AA-safe against every light background
+  in the palette). ADR-0003 updated to cross-reference this as
+  superseding its gray-family entries. Also clarified in
+  `docs/future-work.md`: the admin Product Editor's "Bring your own
+  design"/"Custom design service" pricing configuration is fine to
+  build as MVP scope (just data entry) — only the customer-facing
+  storefront upload/ordering flow stays deferred to the fast-follow
+  feature.

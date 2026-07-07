@@ -34,6 +34,22 @@ nav link in the wireframe as-is; whoever specs the catalog/nav feature
 should decide whether it ships hidden/disabled or omitted entirely
 until this feature actually exists.
 
+Clarified (2026-07-07): the admin wireframes
+(`Resources/wireframes/Admin Screens.html`) show the Product Editor's
+"Processing" section with "Bring your own design" and "Custom design
+service" as fully priced, toggleable options (with a live price
+calculation including a "Custom design" line item), and a configured
+"Custom design fee" on the Shipping & Fees screen. Confirmed this is
+fine to build as MVP scope: the **admin-side pricing/configuration**
+for these processing types isn't the deferred part — it's just data
+entry, and the product data model should support these options and
+their pricing from day one. What's still deferred to this fast-follow
+feature is specifically the **customer-facing storefront flow**
+(upload UI, live preview, actually placing a custom order). The
+catalog/product data model (whenever it's specced) should account for
+this distinction: processing-type pricing is MVP-scope schema, the
+customer-facing upload/ordering flow is not.
+
 ## AI-assisted design feature
 
 Surfaced during: initial constitution drafting, 2026-07-06.
