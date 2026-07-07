@@ -50,10 +50,10 @@ live-recomputed cart.
 | Field | Type | Notes |
 |---|---|---|
 | `id` | identifier | Primary key |
-| `status` | enum: `placed` \| `paid` | FR-013. Only these two values exist in this feature; later statuses (in production, shipped) belong to a later admin feature |
+| `status` | enum: `placed` \| `paid` \| `in production` \| `shipped` | FR-013. This feature only ever sets `placed`/`paid` — the latter two values are defined now so feature 5's admin state-machine transitions don't require a later `ALTER TYPE`, but this feature never sets them |
 | `subtotalCents` | integer | Sum of line items at time of payment |
-| `discountCents` | integer | 0 if no promotion applied |
-| `promotionId` | identifier, nullable | FK → Promotion, if one applied |
+| `discountCents` | integer | 0 if no promotion applied — the actual charged amount, frozen independent of `promotionId` |
+| `promotionId` | identifier, nullable, `ON DELETE SET NULL` | FK → Promotion, if one applied. `ON DELETE SET NULL` (not cascade/restrict) so feature 5 can delete a promotion without ever touching or blocking deletion of order history — `discountCents` above is what was actually charged and never depends on this FK still resolving |
 | `shippingMethod` | enum: `flat` \| `calculated` | |
 | `shippingCents` | integer | The actual charged shipping amount (0 if a `free_shipping` promotion applied) |
 | `taxCents` | integer | From TaxJar at time of payment |

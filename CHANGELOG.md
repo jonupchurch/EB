@@ -442,3 +442,24 @@ the product and its architecture evolved.
   exactly one setting (the flat-rate amount) since tax/calculated
   shipping stay fully dynamic via TaxJar/Shippo. Quality checklist
   passed clean on the first pass. Next: `/speckit-plan`.
+- `docs: amend cart & checkout for feature 5's order status and promotion FK`
+  — while planning feature 5, amended feature 3's `orders` table
+  (not yet implemented, zero cost): `status`'s enum now includes
+  `in production`/`shipped` up front (avoids a later `ALTER TYPE`),
+  and `promotionId`'s foreign key now explicitly specifies
+  `ON DELETE SET NULL` (the schema-level guarantee that deleting a
+  promotion never touches or blocks deleting order history).
+- `plan: admin orders, discounts, shipping & fees` (`specs/005-admin-orders-discounts/`)
+  — ran `/speckit-plan`. Zero new ADRs owed — every technology here
+  (database, Auth.js, admin rate limiter) was already decided by
+  features 1/3; this feature composes them. Order status transitions
+  go through an explicit allowed-transition map
+  (`src/lib/admin/order-status.ts`), directly implementing Principle
+  II's state-machine requirement. Adds one new table, `shop_settings`
+  — a deliberate single-row table (not a generic key-value store) for
+  the one shop-wide setting this project currently has. Polish phase
+  finally adds the "full vertical slice" Playwright e2e Principle V
+  has required since ratification — uncompletable until this feature's
+  admin queue existed. Added `contracts/actions.md` (orders, promotions,
+  shipping settings Server Actions) and `quickstart.md`. Constitution
+  Check passed with no violations.
