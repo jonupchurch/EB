@@ -165,3 +165,17 @@ the product and its architecture evolved.
   no-refunds policy conflicting with the Refund/Reprint order status,
   NFT rights language, Ohio jurisdiction/fulfillment — a real rewrite
   is deferred, not done, per a deliberate quick-pass choice.
+- `docs: review proposed launch catalog` — added
+  `Resources/products/Launch Catalog.html`: a proposed 22-SKU,
+  5-category day-one launch list (Apparel, Drinkware, Wood & Signs,
+  Totes & Bags, Home & Decor; $12-54; 14 made-to-order/8 stockable),
+  with Gifts & Keepsakes and Stickers & Crafts held for a phase-2 drop.
+  Verified the summary numbers against every row. Clarified in the
+  constitution that the catalog's "stockable" label is an internal
+  fulfillment note only, not customer-facing inventory tracking —
+  Principle IV's inventory exclusion stands as originally written, no
+  scope change. Flagged in `docs/future-work.md`: the Recipe Board's
+  "handwriting-to-engrave" variant is confirmed to be a customer photo
+  upload, conflicting with the deferred custom-design boundary — needs
+  resolving (cut or restrict to plain custom text) before the catalog
+  is finalized.

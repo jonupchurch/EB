@@ -36,7 +36,14 @@ Other changes: pre-ratification updates 2026-07-06 — database engine
   updated accordingly; also clarified that the admin product editor's
   processing-type pricing config is MVP scope even though the
   customer-facing custom-design flow itself remains deferred (see
-  docs/future-work.md). Still v1.0.0 draft, not yet ratified.
+  docs/future-work.md). 2026-07-07, following review of
+  Resources/products/Launch Catalog.html (a proposed 22-SKU/5-category
+  day-one launch list): confirmed the catalog's "stockable" label is
+  fulfillment-only, not customer-facing inventory tracking (Principle
+  IV's exclusion stands, clarified in place); flagged the Recipe
+  Board's "handwriting-to-engrave" variant as an actual customer photo
+  upload, conflicting with the deferred custom-design boundary — see
+  docs/future-work.md. Still v1.0.0 draft, not yet ratified.
 Templates requiring updates:
   ⚠ .specify/templates/plan-template.md — verify no hardcoded principle
     names before first /speckit-plan run.
@@ -163,7 +170,12 @@ not built now):
 - Any AI-assisted feature (design generation, support chat, etc.).
 - Identity providers beyond Google SSO, or multiple admin
   roles/permissions — a single owner role only.
-- Inventory/stock tracking — items are made to order.
+- Inventory/stock tracking — confirmed 2026-07-07 against the proposed
+  launch catalog (`Resources/products/Launch Catalog.html`), which
+  labels some items "stockable" (pre-made in batches) vs. "made to
+  order": that label is an internal fulfillment note for the owner,
+  not a customer-facing feature — the site does not track quantity-
+  on-hand or show out-of-stock states for any item in the MVP.
 - Reviews/ratings, wishlists, multi-currency, and subscriptions/
   recurring orders.
 

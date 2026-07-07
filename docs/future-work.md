@@ -50,6 +50,17 @@ catalog/product data model (whenever it's specced) should account for
 this distinction: processing-type pricing is MVP-scope schema, the
 customer-facing upload/ordering flow is not.
 
+Flagged (2026-07-07): the proposed launch catalog
+(`Resources/products/Launch Catalog.html`) includes a "Recipe Board"
+(Home & Decor) with a "handwriting-to-engrave" variant — confirmed
+with Jon this means a customer uploads a photo of actual handwriting,
+which **is** the deferred customer-facing upload flow, not a stylistic
+preset. As written, this item shouldn't ship in the MVP launch
+catalog — either cut it from day one, or restrict it to plain custom
+text (matching the Family Name Sign/Engraved Oak Sign pattern) until
+the customizer feature exists. Needs resolving when Erica confirms the
+final catalog list, not decided here.
+
 ## Stripe as a second payment processor
 
 Surfaced during: reviewing `Resources/wireframes/Admin Screens.html`,
