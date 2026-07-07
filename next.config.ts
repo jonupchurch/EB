@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // The migrate route reads drizzle/*.sql at runtime (not via static
+  // import), so Next's automatic file tracing won't include them in
+  // the deployed function bundle unless told to explicitly.
+  outputFileTracingIncludes: {
+    "/api/admin/migrate": ["./drizzle/**"],
+  },
 };
 
 export default nextConfig;
