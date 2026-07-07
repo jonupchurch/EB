@@ -155,3 +155,13 @@ the product and its architecture evolved.
   compliance section, and swapped the `STRIPE_*` placeholder vars in
   `.env.example`/`.env.local` for `PAYPAL_*` ones (no real secrets
   involved — both were empty).
+- `resources: format legal docs, swap business name` — formatted
+  `Resources/shared/privacy.md` and `Resources/shared/terms and
+  condition.md` into markdown and replaced "Bespoke Pet Design"
+  (the unrelated business the template was drafted for) with "Erica
+  Burns Things" throughout. Flagged clearly (in the files and in
+  `docs/future-work.md`) that the substantive clauses still describe
+  the wrong business — digital art commissions, an unconditional
+  no-refunds policy conflicting with the Refund/Reprint order status,
+  NFT rights language, Ohio jurisdiction/fulfillment — a real rewrite
+  is deferred, not done, per a deliberate quick-pass choice.

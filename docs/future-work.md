@@ -66,6 +66,29 @@ before a single real order can be taken. Stripe support is a real,
 planned fast-follow, not a rejected idea — revisit once PayPal
 checkout is live.
 
+## Real privacy policy & terms of service content
+
+Surfaced during: adding `Resources/shared/privacy.md` and
+`Resources/shared/terms and condition.md`, 2026-07-07.
+
+Both files were drafted from a generic template built for an unrelated
+business (a digital pet-portrait commission studio) — only the
+business name has been swapped to Erica Burns Things so far. The
+substance still describes the wrong business entirely: digital art
+commissions instead of physical custom-printed goods, an unconditional
+"no refunds" clause that conflicts with the Refund/Reprint order
+status already in the admin queue, NFT/portfolio rights language,
+"reference photo of your pet" clauses, Ohio as the fulfillment
+location and governing-law jurisdiction, and "digital delivery"
+turnaround times.
+
+Deferred rather than rewritten now: Jon explicitly chose the quick
+pass (name swap only) over a substantive rewrite for this session.
+Needs a real rewrite before these become live site pages — ideally
+informed by the same real business facts flagged as open in
+`status.md`/project memory (actual jurisdiction/location, real
+refund/reprint policy, real shipping/turnaround times).
+
 ## AI-assisted design feature
 
 Surfaced during: initial constitution drafting, 2026-07-06.
