@@ -24,20 +24,34 @@ Other changes: pre-ratification updates 2026-07-06 — database engine
   III's accessibility bar softened from a hard CI-blocking gate to a
   target/best-effort goal — WCAG 2.1 AA is still the aim, but this is a
   small business's site, not one under compliance exposure requiring
-  it; docs/non-functional.md updated to match. Still v1.0.0 draft, not
-  yet ratified.
+  it; docs/non-functional.md updated to match. Also 2026-07-07,
+  following review of Resources/models/*.md: Principle IV's MVP
+  expanded to include promotions/discounts, tax-calculation-API-driven
+  sales tax, and calculated/carrier-rate shipping (previously listed as
+  out of scope) — the product/customizer decision itself was confirmed
+  to stay out of MVP as already written. Technology Constraints updated
+  to note the payment provider is a genuine Stripe-vs-PayPal open
+  choice (not just "tentatively Stripe"), plus new tax-API and
+  shipping-carrier-API ADR obligations. Still v1.0.0 draft, not yet
+  ratified.
 Templates requiring updates:
   ⚠ .specify/templates/plan-template.md — verify no hardcoded principle
     names before first /speckit-plan run.
   ⚠ .specify/templates/spec-template.md — verify compatibility.
   ⚠ .specify/templates/tasks-template.md — verify compatibility.
 Follow-up TODOs:
-  - Confirm Stripe as the payment provider (currently tentative) before
-    the checkout ADR is written.
+  - Confirm Stripe vs. PayPal (or both) as the payment provider before
+    the checkout ADR is written — genuinely undecided, not just pending
+    confirmation of a default.
   - Confirm the Google SSO implementation (e.g. Clerk vs. Auth.js) as an
     ADR during Feature 000 / first planning pass.
   - Choose a hosted/production Postgres provider when deployment is
     actually being set up (docs/adr/0001-postgres-persistence.md).
+  - Choose a tax-calculation API provider (e.g. Stripe Tax, TaxJar,
+    Avalara) — ADR owed during the checkout feature's planning.
+  - Choose a calculated/carrier-rate shipping provider (e.g. Shippo,
+    EasyPost) if the flat-rate-only option isn't sufficient for MVP —
+    ADR owed during the cart/checkout feature's planning.
 -->
 
 # Printing Website Constitution
@@ -122,25 +136,33 @@ need to be.
 
 One vertical slice done excellently beats a broad, rough store. The MVP
 is: a customer browses a fixed catalog of ready-made products (T-shirts,
-mugs, wood designs, and other categories as they're added) with
-size/color/material variants → adds items to a cart → checks out via a
-server-validated, webhook-verified payment flow → receives an order
-confirmation → the order lands in an authenticated admin queue (items,
-variants, quantities, shipping address, fulfillment status), gated
-behind Google SSO for the business owner, that she works from to print
-and ship orders herself.
+mugs, wood designs, and other categories as they're added; "Standard
+Printed" processing only — bring-your-own-design and custom design are
+explicitly out of scope, see below) with size/color/material variants →
+adds items to a cart, where promotions/discounts (a flat promotional
+discount, BOGO, promo codes, a cart-amount threshold discount, and
+optional free shipping/processing) may apply → checkout computes sales
+tax via a tax-calculation API and shipping via either a flat rate or a
+calculated/carrier-rate option → checks out via a server-validated,
+webhook-verified payment flow → receives an order confirmation → the
+order lands in an authenticated admin queue (items, variants,
+quantities, shipping address, fulfillment status) with admin-configurable
+promotion rules, gated behind Google SSO for the business owner, that
+she works from to print and ship orders herself.
 
 Explicitly out of scope for the MVP (logged to `docs/future-work.md`,
 not built now):
-- A live product customizer / upload-your-own-design tool — a strong
-  candidate for a real future feature, deliberately deferred rather than
-  attempted alongside the base storefront.
+- A live product customizer / upload-your-own-design tool / custom
+  design — every product's "Processing" options include this, and it's
+  the priority fast-follow feature right after MVP, but it's a
+  deliberately separate slice from the base storefront, not attempted
+  alongside it.
 - Any AI-assisted feature (design generation, support chat, etc.).
 - Identity providers beyond Google SSO, or multiple admin
   roles/permissions — a single owner role only.
 - Inventory/stock tracking — items are made to order.
-- Discount codes/promotions, reviews/ratings, wishlists, multi-currency,
-  and subscriptions/recurring orders.
+- Reviews/ratings, wishlists, multi-currency, and subscriptions/
+  recurring orders.
 
 Once `spec.md`'s MVP boundary is approved, it is frozen. Any new idea
 surfaced mid-build MUST be logged to `docs/future-work.md` or an ADR
@@ -213,11 +235,18 @@ when chosen, including a serverless-appropriate connection strategy
 Stripe, tentatively — to be confirmed (and the
 confirmation recorded as an ADR) before the checkout feature's
 implementation closes; server-side only, every webhook signature
-verified before use (Principle II). Identity: Google SSO gates the
-admin queue; the specific implementation (e.g. Clerk vs. Auth.js) is an
-ADR made during planning, not fixed here. No LLM/AI provider is part of
-the MVP; if one is added later (per Principle IV's future-work list) it
-MUST follow Principle II's swappable-provider/Zod-validation rule.
+verified before use (Principle II). Payment provider is genuinely
+undecided between Stripe and PayPal — both remain candidates until
+confirmed, and the confirmation still owes an ADR. Tax: sales tax is
+computed via a tax-calculation API (provider TBD, ADR owed) — never
+hand-rolled tax-rate logic. Shipping: both a flat rate and a
+calculated/carrier-rate option are in scope; the carrier-rate provider
+(if used) is an ADR made during planning. Identity: Google SSO gates
+the admin queue; the specific implementation (e.g. Clerk vs. Auth.js)
+is an ADR made during planning, not fixed here. No LLM/AI provider is
+part of the MVP; if one is added later (per Principle IV's future-work
+list) it MUST follow Principle II's swappable-provider/Zod-validation
+rule.
 
 ## Development Workflow
 

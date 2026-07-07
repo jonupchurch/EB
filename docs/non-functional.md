@@ -23,17 +23,23 @@ etc.).
 
 ## Cost
 
-- TBD once it's decided whether any feature calls a paid external API
-  (e.g. an AI-assisted design feature) — if so, log usage/cost per
-  request the same way any other paid dependency is metered.
+- The tax-calculation API and (if used) a calculated/carrier-rate
+  shipping API are both paid external calls in scope for the MVP now —
+  log usage/cost per request the same way any other paid dependency is
+  metered, same discipline as an AI-assisted feature would need if one
+  is ever added.
 
 ## Limits & abuse
 
 | Guard | Default | Why |
 |---|---|---|
-| Max custom design upload size | TBD | bounds storage/cost; needs a decision on image dimensions/DPI required for print quality |
-| Accepted upload file types | TBD | print-file quality requirements vs. browser upload convenience |
 | Rate limit (checkout/order endpoints) | TBD | abuse control, especially pre-auth if accounts are optional |
+| Promo code attempts per session | TBD | prevent brute-forcing discount codes |
+
+Upload-size/file-type limits for custom-design uploads aren't listed
+here yet — that's the fast-follow product-customizer feature (out of
+MVP scope per Constitution Principle IV), and belongs here once it's
+actually being planned.
 
 Over-limit input gets a clear, actionable error — never a silent
 truncation or a stuck cart.
@@ -54,11 +60,25 @@ truncation or a stuck cart.
 
 ## Payments & compliance
 
-- TBD: payment provider (e.g. Stripe via Vercel Marketplace) — PCI
-  scope should be minimized by using the provider's hosted/embedded
+- TBD: payment provider — genuinely undecided between Stripe and
+  PayPal (not just pending confirmation of a default). PCI scope
+  should be minimized by using whichever provider's hosted/embedded
   checkout rather than handling raw card data directly, but this is a
   decision to make explicitly (ADR) once the provider is chosen, not an
   assumption baked in here.
+
+## Promotions, tax & shipping
+
+- Promotions/discounts are in MVP scope: a flat promotional discount,
+  BOGO, promo codes, a cart-amount-threshold discount, and optional
+  free shipping/processing — all configurable from the admin queue.
+- Sales tax is computed via a tax-calculation API (provider TBD, ADR
+  owed) — never hand-rolled tax-rate logic or a flat guessed rate.
+- Shipping supports both a flat rate and a calculated/carrier-rate
+  option (provider TBD if the latter is used, ADR owed).
+- All of the above MUST degrade to a clear error at checkout if the
+  tax/shipping API is unavailable — never a silent $0 tax or a stuck
+  cart.
 
 ## Reliability & observability
 

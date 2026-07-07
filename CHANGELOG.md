@@ -76,3 +76,20 @@ the product and its architecture evolved.
   not one under the compliance exposure that would make WCAG a legal
   requirement here. Updated `docs/non-functional.md`'s Accessibility
   section to match.
+- `docs: expand MVP to include promotions, tax, and calculated
+  shipping` — reviewed `Resources/models/{mug,shirt,totes,shoppingcart}.md`
+  against the frozen MVP boundary. Confirmed the product-customizer /
+  bring-your-own-design deferral stays as originally decided (every
+  product's "Processing" options include it, but it's the priority
+  fast-follow feature, not MVP). Expanded Principle IV's MVP to include
+  promotions/discounts (flat, BOGO, promo codes, cart-threshold, free
+  shipping/processing), tax-calculation-API-driven sales tax, and a
+  calculated/carrier-rate shipping option — these were previously
+  (incorrectly) listed as out of scope, before the actual product/cart
+  requirements were reviewed. Payment provider is now documented as a
+  genuine Stripe-vs-PayPal open choice (`Resources/shared/payment.md`
+  lists both), not a "tentatively Stripe" default. Updated Technology
+  Constraints, the Sync Impact Report's follow-up TODOs (tax-API and
+  shipping-carrier-API ADRs now owed), and `docs/non-functional.md`
+  (new "Promotions, tax & shipping" section; removed premature
+  upload-limit rows for the deferred customizer feature).

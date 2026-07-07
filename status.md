@@ -12,11 +12,11 @@
 |---|---|---|---|
 | — | Project setup | ✅ Scaffolded | Next.js app, TypeScript/Tailwind/Zod, PostgreSQL via Drizzle, a `/api/health` check, and CI all wired up and passing. |
 | — | Catalog & browsing | Not started | A fixed catalog of ready-made products (shirts, mugs, wood designs) with size/color/material variants. |
-| — | Cart & checkout | Not started | Add to cart, pay via a server-validated, webhook-verified flow (Stripe, tentative). |
+| — | Cart & checkout | Not started | Add to cart (with promotions/discounts), tax + shipping calculated, pay via a server-validated, webhook-verified flow (Stripe vs. PayPal, genuinely undecided). |
 | — | Order confirmation | Not started | Customer sees confirmation; the order is recorded once the payment webhook is verified. |
-| — | Admin order queue | Not started | Google-SSO-gated view of orders (items, variants, shipping address, fulfillment status) the owner works from to print and ship. |
+| — | Admin order queue | Not started | Google-SSO-gated view of orders (items, variants, shipping address, fulfillment status) plus promotion management, the owner works from to print and ship. |
 
-Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md) for the reasoning): a live product customizer / upload-your-own-design tool, any AI-assisted feature, extra admin roles, inventory tracking, discounts, reviews, or multi-currency support.
+Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md) for the reasoning): a live product customizer / upload-your-own-design / custom-design tool (the priority fast-follow right after MVP), any AI-assisted feature, extra admin roles, inventory tracking, reviews, wishlists, multi-currency, or subscriptions.
 
 ---
 
@@ -25,6 +25,7 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 - **2026-07-06** — Scaffolded the Spec Kit project structure (`.specify/`, `.claude/skills/`), drafted the constitution (v1.0.0, not yet ratified), and added the initial docs/config scaffold (ADR template, `future-work.md`, `non-functional.md`, TypeScript/ESLint/Vitest/Playwright config, CI workflow). Decided the database: PostgreSQL, running locally for now ([ADR-0001](docs/adr/0001-postgres-persistence.md)) — hosted/production Postgres is still an open decision.
 - **2026-07-06** — Scaffolded the actual Next.js app: `src/app` (App Router), Tailwind v4, a `public/` folder for static assets, and a `/api/health` route that proves the database connection works. Decided the query layer: Drizzle ORM over Prisma ([ADR-0002](docs/adr/0002-drizzle-orm.md)), with an initial migration applied to the local database. Typecheck, lint, unit tests, build, and e2e all pass. See `CHANGELOG.md` for the exact commits.
 - **2026-07-07** — Reviewed the brand assets that landed in `Resources/brand/` (logo family, voice/tone doc) for accessibility — the logos themselves check out (contrast, proper `aria-label`s), with one note for later: the light-mode tagline gray is a bit too light to reuse as real body text, only the logo itself is exempt from that rule. Also softened the constitution's accessibility bar (Principle III): WCAG 2.1 AA stays the target, but it's no longer a hard CI-blocking gate — this is a small business's site, not one under compliance exposure that requires it.
+- **2026-07-07** — Reviewed `Resources/models/*.md` (mug, shirt, tote, cart) against the MVP boundary. Confirmed the product-customizer/upload-your-own-design deferral stays as-is (fast-follow, not MVP), but expanded the MVP itself to include promotions/discounts, tax-calculation-API-driven sales tax, and calculated/carrier-rate shipping — these were previously (incorrectly) listed as out of scope. Payment provider is now documented as a genuine Stripe-vs-PayPal open choice, not a "tentatively Stripe" default.
 
 ## Next steps
 
