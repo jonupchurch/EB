@@ -16,7 +16,7 @@ begins — everything else follows the customer-facing flow order.
 |---|---|---|---|
 | — | Project setup | ✅ Scaffolded | Next.js app, TypeScript/Tailwind/Zod, PostgreSQL via Drizzle, a `/api/health` check, and CI all wired up and passing. |
 | 1 | Admin: product management | 🧩 Tasked | Auth.js/Google-SSO-gated admin shell + Products list + Product Editor (variant/pricing config, 1..n images) — enough to load real products. |
-| 2 | Catalog & browsing | 📐 Planned | A public storefront (browse by category + product detail with live pricing) reading real Active products seeded via #1. No cart yet. |
+| 2 | Catalog & browsing | 🧩 Tasked | A public storefront (browse by category + product detail with live pricing) reading real Active products seeded via #1. No cart yet. |
 | 3 | Cart & checkout | Not started | Add to cart (with promotions/discounts), tax + shipping calculated, pay via a server-validated, webhook-verified PayPal flow (Stripe is a planned fast-follow). |
 | 4 | Order confirmation | Not started | Customer sees confirmation; the order is recorded once the payment webhook is verified. |
 | 5 | Admin: orders, discounts, shipping & fees | Not started | Order queue/detail (fulfillment), promotion management, and shipping/tax settings — sequenced with/after checkout since they're not useful until real orders exist. |
@@ -56,8 +56,9 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 - **2026-07-07** — While planning feature 2, caught two more small cross-feature gaps and amended feature 1 before they could cause rework later: (1) processing options had no way to mark themselves "not yet customer-orderable" (feature 1 gains FR-016 + a `requiresCustomerUpload` flag, so feature 2 can filter on a real flag instead of guessing from label text), and (2) the shared pricing calculation is moved from `src/lib/admin/pricing.ts` to `src/lib/pricing.ts` since it's no longer admin-only. Both are zero-cost since neither feature has been implemented yet.
 - **2026-07-07** — Ran `/speckit-plan` for feature 2: [plan.md](specs/002-catalog-browsing/plan.md), [research.md](specs/002-catalog-browsing/research.md), [data-model.md](specs/002-catalog-browsing/data-model.md) (introduces zero new tables — pure read layer over feature 1), [contracts/queries.md](specs/002-catalog-browsing/contracts/queries.md), [quickstart.md](specs/002-catalog-browsing/quickstart.md). One new ADR owed: `docs/adr/0010-catalog-rendering-strategy.md` (dynamic/SSR rendering over ISR, so a product can never keep showing after being flipped to Draft). A new `(storefront)` route group keeps the real branded shell from ever wrapping `/admin`'s separate layout. Constitution Check passed with no violations.
 
+- **2026-07-07** — Ran `/speckit-tasks` for feature 2: [tasks.md](specs/002-catalog-browsing/tasks.md). 17 tasks — a lean Setup+Foundational (an ADR, a placeholder image asset, real branding metadata, and the storefront route-group shell), then the two user stories in priority order (US1 browse is the independently-shippable MVP slice; US2 adds product detail + accurate live pricing, reusing feature 1's pricing function outright), and a Polish phase that also folds a concrete LCP target back into `docs/non-functional.md`'s previously-TBD row. No new database tables and no new Server Actions anywhere in this feature — it's a pure read layer.
+
 ## Next steps
 
-1. Run `/speckit-tasks` for feature 2 (catalog & browsing).
-2. Once tasked, move to `/speckit-specify` for feature 3 (cart & checkout), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.
-3. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.
+1. Move to `/speckit-specify` for feature 3 (cart & checkout), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.
+2. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.

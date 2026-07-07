@@ -327,3 +327,14 @@ the product and its architecture evolved.
   `getActiveProduct`), and `quickstart.md`. One new ADR owed:
   `docs/adr/0010-catalog-rendering-strategy.md`. Constitution Check
   passed with no violations.
+- `tasks: catalog & browsing` (`specs/002-catalog-browsing/tasks.md`)
+  — ran `/speckit-tasks`. 17 tasks: a lean Setup+Foundational (the
+  ADR, a placeholder image asset, real branding metadata replacing the
+  scaffold placeholder, and the `(storefront)` route-group shell), then
+  US1 (browse — the independently-shippable MVP slice) and US2
+  (product detail + accurate live pricing, reusing feature 1's pricing
+  function outright rather than reimplementing it), and a Polish phase
+  that folds a concrete LCP target back into `docs/non-functional.md`.
+  No new database tables or Server Actions anywhere in this feature —
+  a pure read layer over feature 1's data. Next: `/speckit-specify` for
+  feature 3 (cart & checkout).
