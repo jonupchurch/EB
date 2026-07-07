@@ -8,13 +8,18 @@
 
 ## At a glance
 
+Build order (decided 2026-07-07): **admin product management ships
+first**, so real products can be loaded before any storefront work
+begins — everything else follows the customer-facing flow order.
+
 | # | Feature | Status | One-liner |
 |---|---|---|---|
 | — | Project setup | ✅ Scaffolded | Next.js app, TypeScript/Tailwind/Zod, PostgreSQL via Drizzle, a `/api/health` check, and CI all wired up and passing. |
-| — | Catalog & browsing | Not started | A fixed catalog of ready-made products (shirts, mugs, wood designs) with size/color/material variants. |
-| — | Cart & checkout | Not started | Add to cart (with promotions/discounts), tax + shipping calculated, pay via a server-validated, webhook-verified PayPal flow (Stripe is a planned fast-follow). |
-| — | Order confirmation | Not started | Customer sees confirmation; the order is recorded once the payment webhook is verified. |
-| — | Admin order queue | Not started | Google-SSO-gated view of orders (items, variants, shipping address, fulfillment status) plus promotion management, the owner works from to print and ship. |
+| 1 | Admin: product management | Not started | Auth.js/Google-SSO-gated admin shell + Products list + Product Editor (variant/pricing config) — enough to load real products. |
+| 2 | Catalog & browsing | Not started | A fixed catalog of ready-made products (shirts, mugs, wood designs) with size/color/material variants, reading real data seeded via #1. |
+| 3 | Cart & checkout | Not started | Add to cart (with promotions/discounts), tax + shipping calculated, pay via a server-validated, webhook-verified PayPal flow (Stripe is a planned fast-follow). |
+| 4 | Order confirmation | Not started | Customer sees confirmation; the order is recorded once the payment webhook is verified. |
+| 5 | Admin: orders, discounts, shipping & fees | Not started | Order queue/detail (fulfillment), promotion management, and shipping/tax settings — sequenced with/after checkout since they're not useful until real orders exist. |
 
 Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md) for the reasoning): a live product customizer / upload-your-own-design / custom-design tool (the priority fast-follow right after MVP), any AI-assisted feature, extra admin roles, inventory tracking, reviews, wishlists, multi-currency, or subscriptions.
 
@@ -35,9 +40,10 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 - **2026-07-07** — Reviewed `Resources/products/Launch Catalog.html`: a proposed 22-SKU, 5-category day-one launch list ($12–54, 14 made-to-order/8 stockable) with 2 more categories held for a phase-2 drop. The numbers check out and it's consistent with everything modeled so far. Clarified in the constitution that "stockable" is an internal fulfillment label only, not customer-facing inventory tracking (no scope change). Flagged one real issue in `docs/future-work.md`: the Recipe Board's "handwriting-to-engrave" variant is confirmed to be a customer photo upload, which conflicts with the deferred custom-design boundary — needs resolving before the catalog is finalized.
 - **2026-07-07** — Reviewed `Resources/wireframes/Checkout & Confirmation.html` — closes the wireframe gap flagged earlier. Strong overall: promo code confirmed to live on checkout (as guessed), full subtotal/discount/processing/shipping/tax/total breakdown, custom-text personalization step, and a real order-confirmation timeline all match what's already decided. One real conflict found and resolved: the payment section showed "Credit / debit card — via Stripe" as the default method with PayPal secondary — the opposite of ADR-0005. Confirmed this is stale wireframe content, not a reconsideration: checkout builds PayPal-only for MVP (see ADR-0005's Update section).
 - **2026-07-07** — Decided the Google SSO implementation: **Auth.js**, over Clerk ([ADR-0006](docs/adr/0006-authjs-for-google-sso.md)) — a managed auth provider was more than the actual need (exactly two known Google accounts gating one admin area). Added `AUTH_SECRET` to `.env.example`/`.env.local`.
+- **2026-07-07** — Decided the build order: admin product management ships first (Auth.js shell + Products list + Product Editor), specifically so real products can be loaded before any storefront work begins. The rest of admin (order queue, discounts, shipping & fees settings) moves to sequence with/after checkout instead, since none of it is useful until real orders exist. Updated the feature table above to match.
 
 ## Next steps
 
 1. Ratify the constitution (or amend it first, if anything above needs adjusting).
-2. Run `/speckit-specify` for the first real product feature — the app now runs, but no product feature (catalog, cart, checkout, admin queue) has gone through the Spec Kit cycle yet.
-3. Work through the MVP feature list above in order, each through the full spec → plan → tasks → implement cycle.
+2. Run `/speckit-specify` for feature 1 (admin product management) — the app now runs, but no product feature has gone through the Spec Kit cycle yet.
+3. Work through the rest of the MVP feature list above in order, each through the full spec → plan → tasks → implement cycle, per the confirmed plan-all-before-implement workflow.

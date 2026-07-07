@@ -200,3 +200,10 @@ the product and its architecture evolved.
   Technology Constraints, the ADR index, and the Sync Impact Report's
   follow-up TODOs (Google SSO item resolved). Added `AUTH_SECRET` to
   `.env.example`/`.env.local`.
+- `docs: reorder MVP build sequence — admin product management first`
+  — decided the build order: admin product management (Auth.js shell +
+  Products list + Product Editor) ships as feature 1, specifically so
+  real products can be loaded before any storefront work begins. Order
+  queue, Discounts, and Shipping & Fees settings move to sequence
+  with/after checkout instead, since they're not useful until real
+  orders exist. Updated `status.md`'s feature table and next steps.
