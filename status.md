@@ -17,7 +17,7 @@ begins — everything else follows the customer-facing flow order.
 | — | Project setup | ✅ Scaffolded | Next.js app, TypeScript/Tailwind/Zod, PostgreSQL via Drizzle, a `/api/health` check, and CI all wired up and passing. |
 | 1 | Admin: product management | 🧩 Tasked | Auth.js/Google-SSO-gated admin shell + Products list + Product Editor (variant/pricing config, 1..n images) — enough to load real products. |
 | 2 | Catalog & browsing | 🧩 Tasked | A public storefront (browse by category + product detail with live pricing) reading real Active products seeded via #1. No cart yet. |
-| 3 | Cart & checkout | 📐 Planned | Cart (P1), accurate checkout total with promo/tax/shipping (P2), and a server-validated, webhook-verified PayPal payment (P3). Stripe is a planned fast-follow. |
+| 3 | Cart & checkout | 🧩 Tasked | Cart (P1), accurate checkout total with promo/tax/shipping (P2), and a server-validated, webhook-verified PayPal payment (P3). Stripe is a planned fast-follow. |
 | 4 | Order confirmation | Not started | Customer sees confirmation; the order is recorded once the payment webhook is verified. |
 | 5 | Admin: orders, discounts, shipping & fees | Not started | Order queue/detail (fulfillment), promotion management, and shipping/tax settings — sequenced with/after checkout since they're not useful until real orders exist. |
 
@@ -64,8 +64,9 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 
 - **2026-07-07** — Ran `/speckit-plan` for feature 3: [plan.md](specs/003-cart-checkout/plan.md), [research.md](specs/003-cart-checkout/research.md), [data-model.md](specs/003-cart-checkout/data-model.md), [contracts/actions.md](specs/003-cart-checkout/contracts/actions.md), [quickstart.md](specs/003-cart-checkout/quickstart.md). Closed two long-open constitution follow-ups for real: **TaxJar** for sales tax and **Shippo** for calculated/carrier-rate shipping (picked after checking how costly a later provider swap would be — contained, since the integration lives behind one small interface). Also decided the cart itself is a client-held cookie reference, never a server table (nothing to persist until an order exists), and that PayPal is integrated via direct REST calls rather than its SDK. Four new ADRs owed (0011–0014). Order line items deliberately snapshot as JSON at time of purchase — the one considered exception to this project's usual typed-table preference, since a paid order is a historical record, not live data. Constitution Check passed with no violations.
 
+- **2026-07-07** — Ran `/speckit-tasks` for feature 3: [tasks.md](specs/003-cart-checkout/tasks.md). 32 tasks — Setup (dependencies + 4 ADRs), a substantial Foundational phase (schema, the checkout rate limiter, the cart-cookie helper, and all four external-integration modules — tax, shipping, promotions, PayPal — each with a deterministic test fake from the start), then the three user stories in priority order (US1 cart is the independently-shippable MVP slice), and a Polish phase that also folds a concrete checkout-step-transition target back into `docs/non-functional.md`. Explicitly noted: this is the first feature whose tasks depend on features 1–2 being *implemented*, not just planned, since it imports their code directly (`src/lib/pricing.ts`, feature 2's product-availability logic).
+
 ## Next steps
 
-1. Run `/speckit-tasks` for feature 3 (cart & checkout).
-2. Once tasked, move to `/speckit-specify` for feature 4 (order confirmation), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.
-3. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.
+1. Move to `/speckit-specify` for feature 4 (order confirmation), per the confirmed plan-all-before-implement workflow — no implementation starts until every MVP feature is planned.
+2. Once every MVP feature is specified/planned/tasked, begin `/speckit-implement` starting with feature 1's tasks.md.

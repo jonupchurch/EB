@@ -376,3 +376,14 @@ the product and its architecture evolved.
   and `quickstart.md`. Added `TAXJAR_API_KEY`/`SHIPPO_API_KEY` to
   `.env.example`/`.env.local`. Constitution Check passed with no
   violations.
+- `tasks: cart & checkout` (`specs/003-cart-checkout/tasks.md`) — ran
+  `/speckit-tasks`. 32 tasks: Setup (dependencies + 4 ADRs), a
+  substantial Foundational phase (schema; the checkout rate limiter;
+  the cart-cookie helper; and all four external-integration modules —
+  tax, shipping, promotions, PayPal — each shipping with a
+  deterministic test fake from the start, this project's established
+  pattern), then US1 (cart — the MVP slice), US2 (accurate checkout
+  total), and US3 (real, webhook-verified payment), plus Polish. Flags
+  that this feature's tasks depend on features 1–2 being *implemented*
+  already, not just planned, since it imports their code directly.
+  Next: `/speckit-specify` for feature 4 (order confirmation).
