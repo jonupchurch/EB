@@ -1,11 +1,21 @@
 @import "tailwindcss";
 
 /*
- * No brand tokens yet — visual identity (Constitution Principle III)
- * gets designed from real wireframes/brand assets, not invented here.
- * This is a plain, undecorated baseline until that design work happens.
+ * Brand tokens from Resources/brand/Ember Design System.html, as
+ * verified/adjusted by the accessibility review (docs/adr/0003,
+ * docs/adr/0004 — "muted" is the darkened, AA-safe value, not the
+ * mockup's original #9A9088/#8A8378).
  */
+@theme {
+  --color-ink: #1b1815;
+  --color-cream: #fbfaf7;
+  --color-cream-deep: #f7f3ea;
+  --color-cream-deeper: #f0eadd;
+  --color-teal: #0f6c68;
+  --color-muted: #6b6560;
+}
+
 body {
-  background: #ffffff;
-  color: #0a0a0a;
+  background: var(--color-cream);
+  color: var(--color-ink);
 }

@@ -17,10 +17,10 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 [P] Add Auth.js (`next-auth`) as a dependency in `package.json`
-- [ ] T002 [P] Add `@vercel/blob` as a dependency in `package.json`
-- [ ] T003 [P] Author `docs/adr/0007-product-options-schema.md` — formalizes the relational-tables-per-option-category decision already reflected in `data-model.md`/`research.md` (Constitution Principle I obligation)
-- [ ] T004 [P] Author `docs/adr/0009-vercel-blob-for-product-images.md` — formalizes the server-side `put()` upload decision already reflected in `research.md` (Constitution Principle I obligation)
+- [x] T001 [P] Add Auth.js (`next-auth`) as a dependency in `package.json`
+- [x] T002 [P] Add `@vercel/blob` as a dependency in `package.json`
+- [x] T003 [P] Author `docs/adr/0007-product-options-schema.md` — formalizes the relational-tables-per-option-category decision already reflected in `data-model.md`/`research.md` (Constitution Principle I obligation)
+- [x] T004 [P] Author `docs/adr/0009-vercel-blob-for-product-images.md` — formalizes the server-side `put()` upload decision already reflected in `research.md` (Constitution Principle I obligation)
 
 ---
 
@@ -28,19 +28,19 @@
 
 **Purpose**: Schema, auth gating, and shared logic every user story needs. No story work starts before this phase is done.
 
-- [ ] T005 Extend `src/db/schema.ts` with `categories`, `products` (nullable `categoryId` FK, `status` enum default `draft`, nullable `weightOz`/`lengthIn`/`widthIn`/`heightIn`), the six option tables — `processingOptions` (with a `requiresCustomerUpload` boolean, default `false`), `stylingOptions`, `materialOptions` (nullable `modelNumber`), `sizeOptions`, `colorOptions` (nullable `swatchHex`), `designLocationOptions` — and `productImages` (`productId` FK, `url`, `sortOrder`), each FK'd to `products` with cascade delete, per `data-model.md`. `health_check` stays untouched.
-- [ ] T006 Generate the Drizzle migration for the new tables (`npm run db:generate`), review the output, and commit it as `drizzle/0001_*.sql` — depends on T005
-- [ ] T007 Apply the migration locally (`npm run db:migrate`) and confirm the new tables exist — depends on T006
-- [ ] T008 [P] Implement `src/auth.ts` — Auth.js config with the Google provider; `signIn` callback rejects any account whose email isn't on the authorized list (read from a new `ADMIN_ALLOWED_EMAILS` env var, comma-separated — add it to `.env.example`/`.env.local`, never hardcode the two real emails in source), per ADR-0006 and `research.md`'s allow-list decision
-- [ ] T009 Implement `src/app/api/auth/[...nextauth]/route.ts` wiring `src/auth.ts`'s handlers — depends on T008
-- [ ] T010 Implement `src/app/admin/layout.tsx` — session-gated admin shell (nav per `Resources/wireframes/Admin Screens.html`); redirects to sign-in if unauthenticated, denies with a clear message if authenticated but not on the allow-list (defense in depth alongside T008's `signIn` callback, per FR-002) — depends on T008
-- [ ] T011 [P] Implement `src/app/admin/page.tsx` — redirects to `/admin/products`
-- [ ] T012 Add a test-only Auth.js Credentials provider to `src/auth.ts`, active only when a dedicated test flag is set (never in production), letting Playwright sign in deterministically as an authorized account without real Google OAuth (matches this project's established fake-provider-for-external-dependencies pattern) — depends on T008
-- [ ] T013 [P] Implement `src/lib/pricing.ts` (not under `admin/` — feature 2 reuses it for the customer-facing price preview) — running-total calculation (`basePriceCents` + every selected option's `priceAdjustmentCents` across all six categories), per `data-model.md`'s Pricing rules; this single function is used by the admin client-side live preview, admin server-side save validation, and (later) the storefront's price preview, so none of them can ever disagree
-- [ ] T014 [P] Implement `src/lib/admin/rate-limit.ts` — simple in-memory rate limiter for admin mutation Server Actions, sized for two trusted users, per `research.md`
-- [ ] T015 [P] Implement `src/lib/admin/product-images.ts` — thin wrapper around Vercel Blob's `put()`/`del()` for product photo upload/removal, per ADR-0009 — depends on T002
-- [ ] T016 Implement Zod schemas for `Product` and all six option shapes in `src/lib/admin/schemas.ts` (`name`/`label` required; `basePriceCents` required integer ≥ 0; `priceAdjustmentCents` integer, any sign, defaults to 0) per `data-model.md`'s Validation rules — consider `drizzle-zod`'s `createInsertSchema` against T005's tables as a starting point — depends on T005
-- [ ] T017 Implement `getCategories()` and `createCategory(name)` (case-insensitive unique) Server Actions in `src/app/admin/products/actions.ts` — supports the "add a new category inline" edge case shared by the Product Editor — depends on T005
+- [x] T005 Extend `src/db/schema.ts` with `categories`, `products` (nullable `categoryId` FK, `status` enum default `draft`, nullable `weightOz`/`lengthIn`/`widthIn`/`heightIn`), the six option tables — `processingOptions` (with a `requiresCustomerUpload` boolean, default `false`), `stylingOptions`, `materialOptions` (nullable `modelNumber`), `sizeOptions`, `colorOptions` (nullable `swatchHex`), `designLocationOptions` — and `productImages` (`productId` FK, `url`, `sortOrder`), each FK'd to `products` with cascade delete, per `data-model.md`. `health_check` stays untouched.
+- [x] T006 Generate the Drizzle migration for the new tables (`npm run db:generate`), review the output, and commit it as `drizzle/0001_*.sql` — depends on T005
+- [x] T007 Apply the migration locally (`npm run db:migrate`) and confirm the new tables exist — depends on T006
+- [x] T008 [P] Implement `src/auth.ts` — Auth.js config with the Google provider; `signIn` callback rejects any account whose email isn't on the authorized list (read from a new `ADMIN_ALLOWED_EMAILS` env var, comma-separated — add it to `.env.example`/`.env.local`, never hardcode the two real emails in source), per ADR-0006 and `research.md`'s allow-list decision
+- [x] T009 Implement `src/app/api/auth/[...nextauth]/route.ts` wiring `src/auth.ts`'s handlers — depends on T008
+- [x] T010 Implement `src/app/admin/layout.tsx` — session-gated admin shell (nav per `Resources/wireframes/Admin Screens.html`); redirects to sign-in if unauthenticated, denies with a clear message if authenticated but not on the allow-list (defense in depth alongside T008's `signIn` callback, per FR-002) — depends on T008
+- [x] T011 [P] Implement `src/app/admin/page.tsx` — redirects to `/admin/products`
+- [x] T012 Add a test-only Auth.js Credentials provider to `src/auth.ts`, active only when a dedicated test flag is set (never in production), letting Playwright sign in deterministically as an authorized account without real Google OAuth (matches this project's established fake-provider-for-external-dependencies pattern) — depends on T008
+- [x] T013 [P] Implement `src/lib/pricing.ts` (not under `admin/` — feature 2 reuses it for the customer-facing price preview) — running-total calculation (`basePriceCents` + every selected option's `priceAdjustmentCents` across all six categories), per `data-model.md`'s Pricing rules; this single function is used by the admin client-side live preview, admin server-side save validation, and (later) the storefront's price preview, so none of them can ever disagree
+- [x] T014 [P] Implement `src/lib/admin/rate-limit.ts` — simple in-memory rate limiter for admin mutation Server Actions, sized for two trusted users, per `research.md`
+- [x] T015 [P] Implement `src/lib/admin/product-images.ts` — thin wrapper around Vercel Blob's `put()`/`del()` for product photo upload/removal, per ADR-0009 — depends on T002
+- [x] T016 Implement Zod schemas for `Product` and all six option shapes in `src/lib/admin/schemas.ts` (`name`/`label` required; `basePriceCents` required integer ≥ 0; `priceAdjustmentCents` integer, any sign, defaults to 0) per `data-model.md`'s Validation rules — consider `drizzle-zod`'s `createInsertSchema` against T005's tables as a starting point — depends on T005
+- [x] T017 Implement `getCategories()` and `createCategory(name)` (case-insensitive unique) Server Actions in `src/app/admin/products/actions.ts` — supports the "add a new category inline" edge case shared by the Product Editor — depends on T005
 
 **Checkpoint**: Foundation ready — user story work can begin.
 
@@ -54,15 +54,15 @@
 
 ### Tests for User Story 1
 
-- [ ] T018 [P] [US1] Vitest for the running-total calculation in `tests/pricing.test.ts` (not under `tests/admin/` — matches `src/lib/pricing.ts`'s shared location) — zero options, single option, multiple categories, and a negative adjustment (e.g. the children's-sizing discount from the wireframe)
-- [ ] T019 [P] [US1] Vitest for Zod validation in `tests/admin/product-schema.test.ts` — valid full product; missing name; missing/negative `basePriceCents`; an option row missing its label; an option row's `priceAdjustmentCents` defaulting to 0 when omitted (not blocking the save, per Edge Cases)
+- [x] T018 [P] [US1] Vitest for the running-total calculation in `tests/pricing.test.ts` (not under `tests/admin/` — matches `src/lib/pricing.ts`'s shared location) — zero options, single option, multiple categories, and a negative adjustment (e.g. the children's-sizing discount from the wireframe)
+- [x] T019 [P] [US1] Vitest for Zod validation in `tests/admin/product-schema.test.ts` — valid full product; missing name; missing/negative `basePriceCents`; an option row missing its label; an option row's `priceAdjustmentCents` defaulting to 0 when omitted (not blocking the save, per Edge Cases)
 
 ### Implementation for User Story 1
 
-- [ ] T020 [US1] Implement `createProduct(input)` Server Action in `src/app/admin/products/actions.ts` — Zod-validate (T016), apply the rate limiter (T014), transactional insert of the product row plus all six option arrays in one transaction (all-or-nothing), per `contracts/actions.md` — depends on T005, T014, T016, T017 (same file)
-- [ ] T021 [US1] Implement `addProductImage(productId, file)` Server Action in `src/app/admin/products/actions.ts` — uploads via T015, appends a `productImages` row after the product's current last `sortOrder` — depends on T005, T015
-- [ ] T022 [US1] Build the shared Product Editor UI (`src/app/admin/products/product-editor.tsx`) — name/category/description/base-price fields, optional weight/dimensions fields (FR-017), category selector with inline "add new category" (T017), six option sections each with add/remove rows (processing options include a "not yet available to customers" toggle for `requiresCustomerUpload`, FR-016), an image gallery (upload via T021, reorderable, removable), a live running total (T013), Active/Draft controls, and field-level error display (no silent failures, FR-011/FR-012) — per `Resources/wireframes/Admin Screens.html`
-- [ ] T023 [US1] Implement `src/app/admin/products/new/page.tsx` — renders the Product Editor (T022) in create mode, calls `createProduct` (T020) on submit, redirects to the products list on success — depends on T020, T021, T022
+- [x] T020 [US1] Implement `createProduct(input)` Server Action in `src/app/admin/products/actions.ts` — Zod-validate (T016), apply the rate limiter (T014), transactional insert of the product row plus all six option arrays in one transaction (all-or-nothing), per `contracts/actions.md` — depends on T005, T014, T016, T017 (same file)
+- [x] T021 [US1] Implement `addProductImage(productId, file)` Server Action in `src/app/admin/products/actions.ts` — uploads via T015, appends a `productImages` row after the product's current last `sortOrder` — depends on T005, T015
+- [x] T022 [US1] Build the shared Product Editor UI (`src/app/admin/products/product-editor.tsx`) — name/category/description/base-price fields, optional weight/dimensions fields (FR-017), category selector with inline "add new category" (T017), six option sections each with add/remove rows (processing options include a "not yet available to customers" toggle for `requiresCustomerUpload`, FR-016), an image gallery (upload via T021, reorderable, removable), a live running total (T013), Active/Draft controls, and field-level error display (no silent failures, FR-011/FR-012) — per `Resources/wireframes/Admin Screens.html`
+- [x] T023 [US1] Implement `src/app/admin/products/new/page.tsx` — renders the Product Editor (T022) in create mode, calls `createProduct` (T020) on submit, redirects to the products list on success — depends on T020, T021, T022
 
 **Checkpoint**: User Story 1 is fully functional and independently testable (MVP scope).
 
@@ -76,9 +76,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Implement `getProducts()` Server Action in `src/app/admin/products/actions.ts` — returns `{ id, name, categoryName, variantCount, basePriceCents, status }` newest-first; `variantCount` is a simple count of option rows across all six option tables for that product (not a combinatorial expansion, and not counting images, per `data-model.md`) — depends on T005
-- [ ] T025 [US2] Implement `src/app/admin/products/page.tsx` — Products list: name/category/variant count/starting price/status, Active vs. Draft visually distinguishable, empty state, "+ New Product" link to `/admin/products/new` — per `Resources/wireframes/Admin Screens.html` — depends on T024
-- [ ] T026 [US2] Playwright e2e in `e2e/admin-products.spec.ts` — sign in via the test provider (T012), create a product with a priced option (US1 flow), confirm it appears correctly in the list (US2 flow) — the P1+P2 slice per `plan.md` — depends on T012, T020, T023, T024, T025
+- [x] T024 [US2] Implement `getProducts()` Server Action in `src/app/admin/products/actions.ts` — returns `{ id, name, categoryName, variantCount, basePriceCents, status }` newest-first; `variantCount` is a simple count of option rows across all six option tables for that product (not a combinatorial expansion, and not counting images, per `data-model.md`) — depends on T005
+- [x] T025 [US2] Implement `src/app/admin/products/page.tsx` — Products list: name/category/variant count/starting price/status, Active vs. Draft visually distinguishable, empty state, "+ New Product" link to `/admin/products/new` — per `Resources/wireframes/Admin Screens.html` — depends on T024
+- [x] T026 [US2] Playwright e2e in `e2e/admin-products.spec.ts` — sign in via the test provider (T012), create a product with a priced option (US1 flow), confirm it appears correctly in the list (US2 flow) — the P1+P2 slice per `plan.md` — depends on T012, T020, T023, T024, T025
 
 **Checkpoint**: User Stories 1 AND 2 both work independently.
 
@@ -92,11 +92,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Implement `getProduct(id)` Server Action in `src/app/admin/products/actions.ts` — full product plus all six option arrays and its `images` array (ordered by `sortOrder`); `not_found` if `id` doesn't exist — depends on T005
-- [ ] T028 [US3] Implement `updateProduct(id, input)` Server Action — same Zod validation as `createProduct` (T016); option arrays are the full replacement set, so rows present before but absent from this submission MUST be deleted, not left orphaned; transactional, `not_found` if missing — depends on T005, T016
-- [ ] T029 [US3] Implement `removeProductImage(id)` Server Action in `src/app/admin/products/actions.ts` — deletes the `productImages` row and, via T015, the underlying Blob object if no other row references the same `url`; never affects another product's copy of the same image — depends on T005, T015
-- [ ] T030 [US3] Implement `reorderProductImages(productId, orderedImageIds)` Server Action — updates `sortOrder` to match the given order; `not_found` if the ID set doesn't exactly match the product's current images — depends on T005
-- [ ] T031 [US3] Implement `src/app/admin/products/[id]/page.tsx` — loads via `getProduct` (T027), renders the Product Editor (T022) in edit mode pre-filled (including its images), calls `updateProduct`/`removeProductImage`/`reorderProductImages` (T028–T030) on submit/edit — depends on T022, T027, T028, T029, T030
+- [x] T027 [US3] Implement `getProduct(id)` Server Action in `src/app/admin/products/actions.ts` — full product plus all six option arrays and its `images` array (ordered by `sortOrder`); `not_found` if `id` doesn't exist — depends on T005
+- [x] T028 [US3] Implement `updateProduct(id, input)` Server Action — same Zod validation as `createProduct` (T016); option arrays are the full replacement set, so rows present before but absent from this submission MUST be deleted, not left orphaned; transactional, `not_found` if missing — depends on T005, T016
+- [x] T029 [US3] Implement `removeProductImage(id)` Server Action in `src/app/admin/products/actions.ts` — deletes the `productImages` row and, via T015, the underlying Blob object if no other row references the same `url`; never affects another product's copy of the same image — depends on T005, T015
+- [x] T030 [US3] Implement `reorderProductImages(productId, orderedImageIds)` Server Action — updates `sortOrder` to match the given order; `not_found` if the ID set doesn't exactly match the product's current images — depends on T005
+- [x] T031 [US3] Implement `src/app/admin/products/[id]/page.tsx` — loads via `getProduct` (T027), renders the Product Editor (T022) in edit mode pre-filled (including its images), calls `updateProduct`/`removeProductImage`/`reorderProductImages` (T028–T030) on submit/edit — depends on T022, T027, T028, T029, T030
 
 **Checkpoint**: User Stories 1, 2, AND 3 all work independently.
 
@@ -110,8 +110,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T032 [US4] Implement `duplicateProduct(id)` Server Action in `src/app/admin/products/actions.ts` — copies the product, all six option arrays, and all `productImages` rows (same `url`, same order, as independent rows) into a new product forced to `draft` status with an auto-generated name ("Copy of {original name}"); reads the source then inserts new rows, never mutates the source; `not_found` if source is missing — depends on T005
-- [ ] T033 [US4] Add a "Duplicate" row action to the Products list (`src/app/admin/products/page.tsx`) — calls `duplicateProduct` (T032), then navigates to the new duplicate's edit page (T031) — depends on T025, T031, T032
+- [x] T032 [US4] Implement `duplicateProduct(id)` Server Action in `src/app/admin/products/actions.ts` — copies the product, all six option arrays, and all `productImages` rows (same `url`, same order, as independent rows) into a new product forced to `draft` status with an auto-generated name ("Copy of {original name}"); reads the source then inserts new rows, never mutates the source; `not_found` if source is missing — depends on T005
+- [x] T033 [US4] Add a "Duplicate" row action to the Products list (`src/app/admin/products/page.tsx`) — calls `duplicateProduct` (T032), then navigates to the new duplicate's edit page (T031) — depends on T025, T031, T032
 
 **Checkpoint**: All four user stories are independently functional.
 
@@ -119,10 +119,10 @@
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T034 [P] Run `quickstart.md`'s manual validation scenarios 1–12 (unauthorized-access denial, create, save validation, Draft vs. Active, list accuracy, edit, duplicate, full launch-catalog spot-check, pricing accuracy, image upload/reorder/remove, image duplication independence, Draft-never-exposed check)
-- [ ] T035 [P] Accessibility spot-check of the real built admin UI against the already-reviewed wireframe tokens (ADR-0003/ADR-0004) — confirm the implementation introduces no new contrast regressions (Principle III: target, not a blocking gate)
-- [ ] T036 Run `npm run typecheck && npm run lint && npm run test && npm run test:e2e` — all four MUST pass (Principle V) — depends on all prior tasks
-- [ ] T037 Update `status.md` and `CHANGELOG.md` marking feature 1 (admin product management) implemented — depends on T036
+- [x] T034 [P] Run `quickstart.md`'s manual validation scenarios 1–12 (unauthorized-access denial, create, save validation, Draft vs. Active, list accuracy, edit, duplicate, full launch-catalog spot-check, pricing accuracy, image upload/reorder/remove, image duplication independence, Draft-never-exposed check)
+- [x] T035 [P] Accessibility spot-check of the real built admin UI against the already-reviewed wireframe tokens (ADR-0003/ADR-0004) — confirm the implementation introduces no new contrast regressions (Principle III: target, not a blocking gate)
+- [x] T036 Run `npm run typecheck && npm run lint && npm run test && npm run test:e2e` — all four MUST pass (Principle V) — depends on all prior tasks
+- [x] T037 Update `status.md` and `CHANGELOG.md` marking feature 1 (admin product management) implemented — depends on T036
 
 ---
 

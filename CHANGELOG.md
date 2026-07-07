@@ -493,3 +493,27 @@ the product and its architecture evolved.
   it, and an `npm run db:migrate` step before tests, on both jobs.
   Caught before feature 1 adds real schema and substantially more
   DB-backed tests.
+- `feat: implement admin product management` (feature 1, all 37 tasks)
+  — Auth.js v5 (Google provider + a test-only Credentials provider for
+  deterministic e2e sign-in), the `categories`/`products`/six
+  option tables/`product_images` schema and migration
+  (`drizzle/0001_premium_puppet_master.sql`), the admin rate limiter,
+  the Vercel Blob image-upload wrapper, and the full Products list +
+  Product Editor (create/edit/duplicate, image upload/reorder/remove,
+  inline category-add, a live example running total). Authored
+  `docs/adr/0007-product-options-schema.md`. Three real bugs found and
+  fixed: `router.push()` immediately followed by `router.refresh()`
+  raced and could strand the save flow on the old page (removed the
+  redundant refresh); an inline arrow function passed from a Server
+  Component to the `ProductEditor` Client Component violated the
+  Server/Client boundary (fixed via `updateProduct.bind(null, productId)`);
+  an invalid option row failed validation silently with no visible
+  error (added a general field-error summary, closing an FR-011/FR-012
+  gap). An ad hoc axe scan found and fixed three real accessibility
+  gaps (unlabeled weight/dimension fields, unlabeled option-row inputs,
+  an unlabeled file upload, an empty table header) — zero violations
+  on re-scan. `typecheck`/`lint`/`test`/`test:e2e` all pass; a
+  production build was verified both with and without
+  `DATABASE_URL`/`BLOB_READ_WRITE_TOKEN`/Auth.js env vars present,
+  mirroring ADR-0008's build-time gotcha check. Next:
+  `/speckit-implement` for feature 2.

@@ -1,0 +1,793 @@
+"use client";
+
+import { useId, useState } from "react";
+import { useRouter } from "next/navigation";
+import { calculateTotalCents } from "@/lib/pricing";
+import {
+  addProductImage,
+  createCategory,
+  removeProductImage,
+  reorderProductImages,
+  type ActionResult,
+} from "./actions";
+
+// --- Shared shapes ---
+
+interface LabeledRow {
+  _key: string;
+  id?: number;
+  label: string;
+  priceAdjustmentCents: number;
+  sortOrder?: number | null;
+}
+
+interface ProcessingRow extends LabeledRow {
+  requiresCustomerUpload: boolean;
+}
+
+interface MaterialRow {
+  _key: string;
+  id?: number;
+  modelNumber: string;
+  description: string;
+  priceAdjustmentCents: number;
+  sortOrder?: number | null;
+}
+
+interface ColorRow extends LabeledRow {
+  swatchHex: string;
+}
+
+export interface ProductEditorInitialData {
+  name: string;
+  description: string | null;
+  basePriceCents: number;
+  categoryId: number | null;
+  status: "active" | "draft";
+  weightOz: number | null;
+  lengthIn: number | null;
+  widthIn: number | null;
+  heightIn: number | null;
+  processingOptions: Array<{
+    id: number;
+    label: string;
+    priceAdjustmentCents: number;
+    sortOrder: number | null;
+    requiresCustomerUpload: boolean;
+  }>;
+  stylingOptions: Array<{
+    id: number;
+    label: string;
+    priceAdjustmentCents: number;
+    sortOrder: number | null;
+  }>;
+  materialOptions: Array<{
+    id: number;
+    modelNumber: string | null;
+    description: string;
+    priceAdjustmentCents: number;
+    sortOrder: number | null;
+  }>;
+  sizeOptions: Array<{
+    id: number;
+    label: string;
+    priceAdjustmentCents: number;
+    sortOrder: number | null;
+  }>;
+  colorOptions: Array<{
+    id: number;
+    label: string;
+    swatchHex: string | null;
+    priceAdjustmentCents: number;
+    sortOrder: number | null;
+  }>;
+  designLocationOptions: Array<{
+    id: number;
+    label: string;
+    priceAdjustmentCents: number;
+    sortOrder: number | null;
+  }>;
+  images: Array<{ id: number; url: string; sortOrder: number }>;
+}
+
+export interface ProductEditorSubmitPayload {
+  name: string;
+  description?: string;
+  basePriceCents: number;
+  categoryId?: number;
+  status: "active" | "draft";
+  weightOz?: number;
+  lengthIn?: number;
+  widthIn?: number;
+  heightIn?: number;
+  processingOptions: Array<{ label: string; priceAdjustmentCents: number; requiresCustomerUpload: boolean }>;
+  stylingOptions: Array<{ label: string; priceAdjustmentCents: number }>;
+  materialOptions: Array<{ modelNumber?: string; description: string; priceAdjustmentCents: number }>;
+  sizeOptions: Array<{ label: string; priceAdjustmentCents: number }>;
+  colorOptions: Array<{ label: string; swatchHex?: string; priceAdjustmentCents: number }>;
+  designLocationOptions: Array<{ label: string; priceAdjustmentCents: number }>;
+}
+
+interface ProductEditorProps {
+  categories: { id: number; name: string }[];
+  initial?: ProductEditorInitialData;
+  productId?: number;
+  onSubmit: (
+    input: ProductEditorSubmitPayload,
+  ) => Promise<ActionResult<{ id: number }>>;
+  afterSubmitHref: string;
+}
+
+let keySeq = 0;
+function nextKey() {
+  keySeq += 1;
+  return `row-${keySeq}`;
+}
+
+function toLabeledRows(
+  rows: Array<{ id: number; label: string; priceAdjustmentCents: number; sortOrder: number | null }>,
+): LabeledRow[] {
+  return rows.map((r) => ({ ...r, _key: nextKey() }));
+}
+
+export function ProductEditor({
+  categories: initialCategories,
+  initial,
+  productId,
+  onSubmit,
+  afterSubmitHref,
+}: ProductEditorProps) {
+  const router = useRouter();
+  const formId = useId();
+
+  const [categories, setCategories] = useState(initialCategories);
+  const [newCategoryName, setNewCategoryName] = useState("");
+
+  const [name, setName] = useState(initial?.name ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [basePriceCents, setBasePriceCents] = useState(initial?.basePriceCents ?? 0);
+  const [categoryId, setCategoryId] = useState<number | undefined>(
+    initial?.categoryId ?? undefined,
+  );
+  const [status, setStatus] = useState<"active" | "draft">(initial?.status ?? "draft");
+  const [weightOz, setWeightOz] = useState<number | undefined>(initial?.weightOz ?? undefined);
+  const [lengthIn, setLengthIn] = useState<number | undefined>(initial?.lengthIn ?? undefined);
+  const [widthIn, setWidthIn] = useState<number | undefined>(initial?.widthIn ?? undefined);
+  const [heightIn, setHeightIn] = useState<number | undefined>(initial?.heightIn ?? undefined);
+
+  const [processingOptions, setProcessingOptions] = useState<ProcessingRow[]>(
+    (initial?.processingOptions ?? []).map((r) => ({ ...r, _key: nextKey() })),
+  );
+  const [stylingOptions, setStylingOptions] = useState<LabeledRow[]>(
+    toLabeledRows(initial?.stylingOptions ?? []),
+  );
+  const [materialOptions, setMaterialOptions] = useState<MaterialRow[]>(
+    (initial?.materialOptions ?? []).map((r) => ({
+      ...r,
+      modelNumber: r.modelNumber ?? "",
+      _key: nextKey(),
+    })),
+  );
+  const [sizeOptions, setSizeOptions] = useState<LabeledRow[]>(
+    toLabeledRows(initial?.sizeOptions ?? []),
+  );
+  const [colorOptions, setColorOptions] = useState<ColorRow[]>(
+    (initial?.colorOptions ?? []).map((r) => ({
+      ...r,
+      swatchHex: r.swatchHex ?? "",
+      _key: nextKey(),
+    })),
+  );
+  const [designLocationOptions, setDesignLocationOptions] = useState<LabeledRow[]>(
+    toLabeledRows(initial?.designLocationOptions ?? []),
+  );
+
+  const [images, setImages] = useState(initial?.images ?? []);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  // A representative example combination — one row per single-select
+  // category (the first) plus every design-location row — used only
+  // to give the admin a live sanity-check total while entering prices.
+  // There's no "customer selection" concept in this admin context.
+  const previewOptions = [
+    processingOptions[0],
+    stylingOptions[0],
+    materialOptions[0],
+    sizeOptions[0],
+    colorOptions[0],
+    ...designLocationOptions,
+  ]
+    .filter((o): o is NonNullable<typeof o> => !!o)
+    .map((o) => ({ priceAdjustmentCents: o.priceAdjustmentCents }));
+  const previewTotalCents = calculateTotalCents(basePriceCents, previewOptions);
+
+  async function handleAddCategory() {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    const result = await createCategory(trimmed);
+    if (result.ok) {
+      setCategories((prev) => [...prev, result.data].sort((a, b) => a.name.localeCompare(b.name)));
+      setCategoryId(result.data.id);
+      setNewCategoryName("");
+    }
+  }
+
+  async function handleImageUpload(file: File) {
+    if (!productId) return;
+    setUploading(true);
+    setImageError(null);
+    const formData = new FormData();
+    formData.set("file", file);
+    const result = await addProductImage(productId, formData);
+    setUploading(false);
+    if (result.ok) {
+      setImages((prev) => [...prev, { ...result.data, sortOrder: prev.length }]);
+    } else {
+      setImageError(result.fieldErrors?.file ?? "Could not upload image");
+    }
+  }
+
+  async function handleRemoveImage(id: number) {
+    if (!productId) return;
+    const result = await removeProductImage(id);
+    if (result.ok) {
+      setImages((prev) => prev.filter((img) => img.id !== id));
+    }
+  }
+
+  async function handleMoveImage(index: number, direction: -1 | 1) {
+    if (!productId) return;
+    const target = index + direction;
+    if (target < 0 || target >= images.length) return;
+    const reordered = [...images];
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    setImages(reordered);
+    await reorderProductImages(
+      productId,
+      reordered.map((img) => img.id),
+    );
+  }
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setFieldErrors({});
+
+    const payload: ProductEditorSubmitPayload = {
+      name,
+      description: description || undefined,
+      basePriceCents,
+      categoryId,
+      status,
+      weightOz,
+      lengthIn,
+      widthIn,
+      heightIn,
+      processingOptions: processingOptions.map((o) => ({
+        label: o.label,
+        priceAdjustmentCents: o.priceAdjustmentCents,
+        requiresCustomerUpload: o.requiresCustomerUpload,
+      })),
+      stylingOptions: stylingOptions.map((o) => ({
+        label: o.label,
+        priceAdjustmentCents: o.priceAdjustmentCents,
+      })),
+      materialOptions: materialOptions.map((o) => ({
+        modelNumber: o.modelNumber || undefined,
+        description: o.description,
+        priceAdjustmentCents: o.priceAdjustmentCents,
+      })),
+      sizeOptions: sizeOptions.map((o) => ({
+        label: o.label,
+        priceAdjustmentCents: o.priceAdjustmentCents,
+      })),
+      colorOptions: colorOptions.map((o) => ({
+        label: o.label,
+        swatchHex: o.swatchHex || undefined,
+        priceAdjustmentCents: o.priceAdjustmentCents,
+      })),
+      designLocationOptions: designLocationOptions.map((o) => ({
+        label: o.label,
+        priceAdjustmentCents: o.priceAdjustmentCents,
+      })),
+    };
+
+    const result = await onSubmit(payload);
+    setSaving(false);
+
+    if (!result.ok) {
+      setFieldErrors(result.fieldErrors ?? { _root: "Could not save product" });
+      return;
+    }
+
+    // router.push already fetches fresh RSC data for the destination route
+    // — calling router.refresh() immediately after races the push's own
+    // transition (observed: it can leave the page stuck on the old route).
+    router.push(afterSubmitHref);
+  }
+
+  return (
+    <form id={formId} onSubmit={handleSubmit} className="max-w-3xl space-y-8">
+      {fieldErrors._root && (
+        <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{fieldErrors._root}</p>
+      )}
+      {Object.entries(fieldErrors).filter(([key]) => !["_root", "name", "basePriceCents"].includes(key))
+        .length > 0 && (
+        <ul className="space-y-1 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
+          {Object.entries(fieldErrors)
+            .filter(([key]) => !["_root", "name", "basePriceCents"].includes(key))
+            .map(([key, message]) => (
+              <li key={key}>
+                {key}: {message}
+              </li>
+            ))}
+        </ul>
+      )}
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-ink">Details</h2>
+
+        <div>
+          <label className="block text-sm font-medium text-ink" htmlFor="name">
+            Name
+          </label>
+          <input
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mt-1 w-full rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
+          />
+          {fieldErrors.name && <p className="mt-1 text-sm text-red-700">{fieldErrors.name}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-ink" htmlFor="category">
+            Category
+          </label>
+          <select
+            id="category"
+            value={categoryId ?? ""}
+            onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
+            className="mt-1 w-full rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
+          >
+            <option value="">No category</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <div className="mt-2 flex gap-2">
+            <input
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder="Add a new category"
+              className="flex-1 rounded border border-cream-deeper bg-white px-3 py-1.5 text-sm text-ink"
+            />
+            <button
+              type="button"
+              onClick={handleAddCategory}
+              className="rounded bg-teal px-3 py-1.5 text-sm font-medium text-white"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-ink" htmlFor="description">
+            Description
+          </label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="mt-1 w-full rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-ink" htmlFor="basePriceCents">
+            Base price (USD)
+          </label>
+          <input
+            id="basePriceCents"
+            type="number"
+            step="0.01"
+            min="0"
+            value={(basePriceCents / 100).toFixed(2)}
+            onChange={(e) => setBasePriceCents(Math.round(Number(e.target.value) * 100))}
+            className="mt-1 w-40 rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
+          />
+          {fieldErrors.basePriceCents && (
+            <p className="mt-1 text-sm text-red-700">{fieldErrors.basePriceCents}</p>
+          )}
+        </div>
+
+        <fieldset>
+          <legend className="text-sm font-medium text-ink">Status</legend>
+          <div className="mt-1 flex gap-4">
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input
+                type="radio"
+                checked={status === "draft"}
+                onChange={() => setStatus("draft")}
+              />
+              Draft
+            </label>
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input
+                type="radio"
+                checked={status === "active"}
+                onChange={() => setStatus("active")}
+              />
+              Active
+            </label>
+          </div>
+        </fieldset>
+
+        <div className="grid grid-cols-4 gap-3">
+          <NumberField label="Weight (oz)" value={weightOz} onChange={setWeightOz} />
+          <NumberField label="Length (in)" value={lengthIn} onChange={setLengthIn} />
+          <NumberField label="Width (in)" value={widthIn} onChange={setWidthIn} />
+          <NumberField label="Height (in)" value={heightIn} onChange={setHeightIn} />
+        </div>
+      </section>
+
+      <LabeledOptionSection
+        title="Processing"
+        rows={processingOptions}
+        setRows={setProcessingOptions}
+        newRow={() => ({ _key: nextKey(), label: "", priceAdjustmentCents: 0, requiresCustomerUpload: false })}
+        renderExtra={(row, update) => (
+          <label className="col-span-2 flex items-center gap-2 text-xs text-muted">
+            <input
+              type="checkbox"
+              checked={row.requiresCustomerUpload}
+              onChange={(e) => update({ requiresCustomerUpload: e.target.checked })}
+            />
+            Not yet available to customers (requires a design upload flow)
+          </label>
+        )}
+      />
+
+      <LabeledOptionSection
+        title="Styling"
+        rows={stylingOptions}
+        setRows={setStylingOptions}
+        newRow={() => ({ _key: nextKey(), label: "", priceAdjustmentCents: 0 })}
+      />
+
+      <MaterialOptionSection rows={materialOptions} setRows={setMaterialOptions} />
+
+      <LabeledOptionSection
+        title="Size"
+        rows={sizeOptions}
+        setRows={setSizeOptions}
+        newRow={() => ({ _key: nextKey(), label: "", priceAdjustmentCents: 0 })}
+      />
+
+      <ColorOptionSection rows={colorOptions} setRows={setColorOptions} />
+
+      <LabeledOptionSection
+        title="Design location"
+        rows={designLocationOptions}
+        setRows={setDesignLocationOptions}
+        newRow={() => ({ _key: nextKey(), label: "", priceAdjustmentCents: 0 })}
+      />
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-ink">Photos</h2>
+        {!productId ? (
+          <p className="text-sm text-muted">Save this product first to add photos.</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-3">
+              {images.map((img, index) => (
+                <div key={img.id} className="w-32 space-y-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.url}
+                    alt=""
+                    className="h-32 w-32 rounded border border-cream-deeper object-cover"
+                  />
+                  <div className="flex items-center justify-between text-xs">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveImage(index, -1)}
+                      disabled={index === 0}
+                      className="text-muted disabled:opacity-30"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveImage(index, 1)}
+                      disabled={index === images.length - 1}
+                      className="text-muted disabled:opacity-30"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(img.id)}
+                      className="text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              aria-label="Upload a product photo"
+              disabled={uploading}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void handleImageUpload(file);
+                e.target.value = "";
+              }}
+            />
+            {imageError && <p className="text-sm text-red-700">{imageError}</p>}
+          </div>
+        )}
+      </section>
+
+      <section className="rounded border border-cream-deeper bg-cream-deep px-4 py-3">
+        <p className="text-sm text-muted">Example running total (base + one option per section)</p>
+        <p className="text-2xl font-semibold text-ink">
+          ${(previewTotalCents / 100).toFixed(2)}
+        </p>
+      </section>
+
+      <button
+        type="submit"
+        disabled={saving}
+        className="rounded bg-teal px-5 py-2 font-medium text-white disabled:opacity-50"
+      >
+        {saving ? "Saving…" : "Save product"}
+      </button>
+    </form>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number | undefined;
+  onChange: (value: number | undefined) => void;
+}) {
+  const id = useId();
+  return (
+    <div>
+      <label htmlFor={id} className="block text-xs font-medium text-muted">
+        {label}
+      </label>
+      <input
+        id={id}
+        type="number"
+        min="0"
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
+        className="mt-1 w-full rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+      />
+    </div>
+  );
+}
+
+function LabeledOptionSection<T extends LabeledRow>({
+  title,
+  rows,
+  setRows,
+  newRow,
+  renderExtra,
+}: {
+  title: string;
+  rows: T[];
+  setRows: React.Dispatch<React.SetStateAction<T[]>>;
+  newRow: () => T;
+  renderExtra?: (row: T, update: (patch: Partial<T>) => void) => React.ReactNode;
+}) {
+  function update(key: string, patch: Partial<T>) {
+    setRows((prev) => prev.map((r) => (r._key === key ? { ...r, ...patch } : r)));
+  }
+  function remove(key: string) {
+    setRows((prev) => prev.filter((r) => r._key !== key));
+  }
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold text-ink">{title}</h2>
+      <div className="space-y-2">
+        {rows.map((row) => (
+          <div key={row._key} className="grid grid-cols-[1fr_120px_auto] items-center gap-2">
+            <input
+              value={row.label}
+              onChange={(e) => update(row._key, { label: e.target.value } as Partial<T>)}
+              placeholder="Label"
+              aria-label={`${title} option label`}
+              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+            />
+            <input
+              type="number"
+              step="0.01"
+              value={(row.priceAdjustmentCents / 100).toFixed(2)}
+              onChange={(e) =>
+                update(row._key, {
+                  priceAdjustmentCents: Math.round(Number(e.target.value) * 100),
+                } as Partial<T>)
+              }
+              aria-label={`${title} option price adjustment`}
+              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+            />
+            <button
+              type="button"
+              onClick={() => remove(row._key)}
+              className="text-sm text-red-700"
+            >
+              Remove
+            </button>
+            {renderExtra?.(row, (patch) => update(row._key, patch))}
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => setRows((prev) => [...prev, newRow()])}
+        className="text-sm font-medium text-teal"
+      >
+        + Add {title.toLowerCase()} option
+      </button>
+    </section>
+  );
+}
+
+function MaterialOptionSection({
+  rows,
+  setRows,
+}: {
+  rows: MaterialRow[];
+  setRows: React.Dispatch<React.SetStateAction<MaterialRow[]>>;
+}) {
+  function update(key: string, patch: Partial<MaterialRow>) {
+    setRows((prev) => prev.map((r) => (r._key === key ? { ...r, ...patch } : r)));
+  }
+  function remove(key: string) {
+    setRows((prev) => prev.filter((r) => r._key !== key));
+  }
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold text-ink">Material</h2>
+      <div className="space-y-2">
+        {rows.map((row) => (
+          <div key={row._key} className="grid grid-cols-[140px_1fr_120px_auto] items-center gap-2">
+            <input
+              value={row.modelNumber}
+              onChange={(e) => update(row._key, { modelNumber: e.target.value })}
+              placeholder="Model # (optional)"
+              aria-label="Material option model number"
+              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+            />
+            <input
+              value={row.description}
+              onChange={(e) => update(row._key, { description: e.target.value })}
+              placeholder="Description"
+              aria-label="Material option description"
+              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+            />
+            <input
+              type="number"
+              step="0.01"
+              value={(row.priceAdjustmentCents / 100).toFixed(2)}
+              onChange={(e) =>
+                update(row._key, {
+                  priceAdjustmentCents: Math.round(Number(e.target.value) * 100),
+                })
+              }
+              aria-label="Material option price adjustment"
+              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+            />
+            <button type="button" onClick={() => remove(row._key)} className="text-sm text-red-700">
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() =>
+          setRows((prev) => [
+            ...prev,
+            { _key: nextKey(), modelNumber: "", description: "", priceAdjustmentCents: 0 },
+          ])
+        }
+        className="text-sm font-medium text-teal"
+      >
+        + Add material option
+      </button>
+    </section>
+  );
+}
+
+function ColorOptionSection({
+  rows,
+  setRows,
+}: {
+  rows: ColorRow[];
+  setRows: React.Dispatch<React.SetStateAction<ColorRow[]>>;
+}) {
+  function update(key: string, patch: Partial<ColorRow>) {
+    setRows((prev) => prev.map((r) => (r._key === key ? { ...r, ...patch } : r)));
+  }
+  function remove(key: string) {
+    setRows((prev) => prev.filter((r) => r._key !== key));
+  }
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold text-ink">Color</h2>
+      <div className="space-y-2">
+        {rows.map((row) => (
+          <div
+            key={row._key}
+            className="grid grid-cols-[1fr_80px_120px_auto] items-center gap-2"
+          >
+            <input
+              value={row.label}
+              onChange={(e) => update(row._key, { label: e.target.value })}
+              placeholder="Label"
+              aria-label="Color option label"
+              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+            />
+            <input
+              type="text"
+              value={row.swatchHex}
+              onChange={(e) => update(row._key, { swatchHex: e.target.value })}
+              placeholder="#hex"
+              aria-label="Color option swatch hex value"
+              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+            />
+            <input
+              type="number"
+              step="0.01"
+              value={(row.priceAdjustmentCents / 100).toFixed(2)}
+              onChange={(e) =>
+                update(row._key, {
+                  priceAdjustmentCents: Math.round(Number(e.target.value) * 100),
+                })
+              }
+              aria-label="Color option price adjustment"
+              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+            />
+            <button type="button" onClick={() => remove(row._key)} className="text-sm text-red-700">
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() =>
+          setRows((prev) => [
+            ...prev,
+            { _key: nextKey(), label: "", swatchHex: "", priceAdjustmentCents: 0 },
+          ])
+        }
+        className="text-sm font-medium text-teal"
+      >
+        + Add color option
+      </button>
+    </section>
+  );
+}

@@ -26,5 +26,12 @@ export default defineConfig({
     // before running e2e locally so those overrides actually apply.
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
+    env: {
+      // Enables src/auth.ts's test-only Credentials provider so e2e can
+      // sign in deterministically as an authorized admin account without
+      // real Google OAuth. See the reuseExistingServer note above — this
+      // only takes effect when Playwright actually starts the server.
+      E2E_TEST_AUTH: "true",
+    },
   },
 });
