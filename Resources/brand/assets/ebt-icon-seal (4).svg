@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="512" height="512" role="img" aria-label="Erica Burns Things app icon">
+  <rect x="0" y="0" width="128" height="128" rx="30" fill="#14807C"></rect>
+  <g transform="translate(28,22) scale(0.7)">
+    <path d="M52 6 C60 30 76 40 76 68 C76 92 64 108 50 108 C34 108 24 92 26 72 C27 60 36 56 41 44 C44 57 39 62 48 66 C56 58 56 32 52 6 Z" fill="#FBFAF7"></path>
+  </g>
+</svg>

@@ -116,3 +116,14 @@ the product and its architecture evolved.
   intentional (noted in `docs/future-work.md`, not a scope violation)
   and that the cart's missing promo-code field isn't a gap — that
   likely belongs to a not-yet-designed checkout-step wireframe.
+- `resources: add brand icon set, reformat product/equipment reference`
+  — added ~48 UI icons and refreshed logo exports to
+  `Resources/brand/assets/`. Reformatted `Resources/products/productinfo.md`
+  from unstructured plain text into proper markdown (equipment table +
+  per-category sections) for readability. This file reveals a much
+  larger real product range (dozens of categories: apparel, drinkware,
+  home decor, weddings, jewelry, office, promo, restaurant, event, pet,
+  kitchen, holiday, crafts, leather, acrylic, wood, metal, UV-printed,
+  electronics) than the handful of example products used in wireframes
+  so far — noted in `status.md` as relevant context for scoping the
+  catalog feature later.
