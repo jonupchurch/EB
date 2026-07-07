@@ -429,3 +429,16 @@ the product and its architecture evolved.
   count of the four MVP features tasked so far. Next: `/speckit-specify`
   for feature 5 (admin: orders, discounts, shipping & fees) — the last
   MVP feature.
+- `spec: admin orders, discounts, shipping & fees` (`specs/005-admin-orders-discounts/`)
+  — ran `/speckit-specify` for feature 5, the last MVP feature. Three
+  prioritized user stories (P1 work the order queue through to
+  fulfillment, P2 create/manage promotions, P3 set the flat shipping
+  rate), 13 functional requirements, 5 measurable success criteria,
+  zero `[NEEDS CLARIFICATION]` markers. The fulfillment state machine
+  only allows one forward step at a time (`paid`->`in production`->`shipped`;
+  `placed`->`paid` stays webhook-only, never admin-settable). This
+  feature is the first to actually CRUD feature 3's `promotions` table
+  — feature 3 only read/applied it. "Shipping & fees" resolved to
+  exactly one setting (the flat-rate amount) since tax/calculated
+  shipping stay fully dynamic via TaxJar/Shippo. Quality checklist
+  passed clean on the first pass. Next: `/speckit-plan`.
