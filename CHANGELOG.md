@@ -207,3 +207,13 @@ the product and its architecture evolved.
   queue, Discounts, and Shipping & Fees settings move to sequence
   with/after checkout instead, since they're not useful until real
   orders exist. Updated `status.md`'s feature table and next steps.
+- `docs: ratify the constitution, v1.0.0` — closed out the Sync Impact
+  Report's day-and-a-half drafting narrative (preserved in this file
+  and `status.md`, not repeated in the constitution itself) and
+  updated the Ratified/Last Amended dates to 2026-07-07. All six ADRs
+  (PostgreSQL, Drizzle, three accessibility-token decisions, PayPal,
+  Auth.js), the expanded MVP scope (promotions/tax/shipping), and the
+  target-not-gate accessibility bar are now the settled ground rules.
+  Refreshed `README.md` to match (PayPal/Auth.js named directly, ADR
+  count updated, build-order note added). Next: `/speckit-specify` for
+  feature 1, admin product management.

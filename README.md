@@ -14,18 +14,19 @@ A small print business (T-shirts, mugs, wood designs, and more) needs a real sto
 
 ## How it will work (MVP)
 
-1. **Browse** — a fixed catalog of ready-made products with size/color/material variants. (No live design customizer yet — see [`docs/future-work.md`](docs/future-work.md).)
-2. **Cart & checkout** — add items, check out through a server-validated, webhook-verified payment flow (Stripe, tentatively).
-3. **Confirmation** — the customer gets an order confirmation; the order is recorded once the payment webhook is verified.
-4. **Fulfillment** — the order lands in an authenticated admin queue (Google SSO), which the owner works from to print and ship it herself.
+1. **Admin loads products first** — a Google-SSO-gated (Auth.js) admin area with a Product Editor (variant/pricing config) ships before any storefront work, so the catalog has real data to read from day one.
+2. **Browse** — a fixed catalog of ready-made products with size/color/material variants. (No live design customizer yet — see [`docs/future-work.md`](docs/future-work.md).)
+3. **Cart & checkout** — add items (with promotions/discounts), tax and shipping calculated, check out through a server-validated, webhook-verified **PayPal** flow (Stripe is a planned fast-follow, not MVP).
+4. **Confirmation** — the customer gets an order confirmation; the order is recorded once the payment webhook is verified.
+5. **Fulfillment** — the order lands in an admin order queue, discounts, and shipping/tax settings that the owner works from to print and ship it herself.
 
 ## Project status
 
-**Scaffolded, no product features yet.** The Next.js app runs, connects to PostgreSQL, and passes its full quality bar (typecheck/lint/test/build/e2e), but no catalog, cart, checkout, or admin queue exists. The constitution is drafted (v1.0.0) but not yet ratified. See [`status.md`](status.md) for the current build state and [`CHANGELOG.md`](CHANGELOG.md) for the full history.
+**Constitution ratified, no product features built yet.** The Next.js app runs, connects to PostgreSQL, and passes its full quality bar (typecheck/lint/test/build/e2e). The full purchase flow (storefront, checkout, admin) is wireframed and cross-checked against the constitution in `Resources/`; the build order is decided (admin product management first). See [`status.md`](status.md) for the current build state and [`CHANGELOG.md`](CHANGELOG.md) for the full history.
 
 ## Tech stack
 
-Next.js (App Router) · TypeScript (strict) · Tailwind CSS · Zod · PostgreSQL via Drizzle ORM (local for now — [ADR-0001](docs/adr/0001-postgres-persistence.md), [ADR-0002](docs/adr/0002-drizzle-orm.md)) · Vitest · Playwright · GitHub Actions · Vercel. Payment provider (Stripe, tentative) and auth provider (Google SSO, implementation TBD) are open ADRs — see the constitution's Sync Impact Report.
+Next.js (App Router) · TypeScript (strict) · Tailwind CSS · Zod · PostgreSQL via Drizzle ORM (local for now — [ADR-0001](docs/adr/0001-postgres-persistence.md), [ADR-0002](docs/adr/0002-drizzle-orm.md)) · PayPal for payments ([ADR-0005](docs/adr/0005-paypal-for-mvp-payments.md)) · Auth.js for Google SSO ([ADR-0006](docs/adr/0006-authjs-for-google-sso.md)) · Vitest · Playwright · GitHub Actions · Vercel. Tax-calculation API and shipping-carrier-rate provider are still open — see the constitution's Sync Impact Report.
 
 ## Run locally
 
@@ -47,7 +48,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs typecheck, lint, unit tests, an
 
 ## Architecture decisions
 
-Every non-trivial tradeoff gets a short ADR in [`docs/adr/`](docs/adr) — captured before or alongside the code that implements it. Two accepted so far (database engine, ORM choice); see the index at [`docs/adr/README.md`](docs/adr/README.md).
+Every non-trivial tradeoff gets a short ADR in [`docs/adr/`](docs/adr) — captured before or alongside the code that implements it. Six accepted so far (database, ORM, payment provider, auth provider, and two accessibility-token decisions); see the index at [`docs/adr/README.md`](docs/adr/README.md).
 
 ## Payments & privacy
 

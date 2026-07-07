@@ -2,7 +2,7 @@
 
 **Purpose of this document:** a plain-language summary of where this project stands and what's planned — for anyone following along without reading the technical specs in detail. Updated as work progresses; the full technical detail behind any item lives in `specs/` once a feature reaches planning, or in [`CHANGELOG.md`](CHANGELOG.md) for a push-by-push history.
 
-**Where things stand:** the app itself now exists and runs (Next.js scaffold, database connectivity, CI-checkable), but no product feature has been built. The project's constitution — the ground rules for how this gets built (scope, quality bar, process) — is drafted but not yet ratified. No feature has been specified, planned, or implemented through the Spec Kit cycle yet. The table below is a provisional read of the MVP from the constitution, not a committed plan — the real breakdown gets finalized as each feature goes through `/speckit-specify`.
+**Where things stand:** the app itself exists and runs (Next.js scaffold, database connectivity, CI-checkable), and the project's constitution — the ground rules for how this gets built (scope, quality bar, process) — is **ratified as of 2026-07-07 (v1.0.0)**. No product feature has been built yet, and no feature has been specified, planned, or implemented through the Spec Kit cycle. The table below is a provisional read of the MVP from the constitution, not a committed plan — the real breakdown gets finalized as each feature goes through `/speckit-specify`, starting with admin product management.
 
 ---
 
@@ -41,9 +41,9 @@ Deliberately **not** in the MVP (see [`docs/future-work.md`](docs/future-work.md
 - **2026-07-07** — Reviewed `Resources/wireframes/Checkout & Confirmation.html` — closes the wireframe gap flagged earlier. Strong overall: promo code confirmed to live on checkout (as guessed), full subtotal/discount/processing/shipping/tax/total breakdown, custom-text personalization step, and a real order-confirmation timeline all match what's already decided. One real conflict found and resolved: the payment section showed "Credit / debit card — via Stripe" as the default method with PayPal secondary — the opposite of ADR-0005. Confirmed this is stale wireframe content, not a reconsideration: checkout builds PayPal-only for MVP (see ADR-0005's Update section).
 - **2026-07-07** — Decided the Google SSO implementation: **Auth.js**, over Clerk ([ADR-0006](docs/adr/0006-authjs-for-google-sso.md)) — a managed auth provider was more than the actual need (exactly two known Google accounts gating one admin area). Added `AUTH_SECRET` to `.env.example`/`.env.local`.
 - **2026-07-07** — Decided the build order: admin product management ships first (Auth.js shell + Products list + Product Editor), specifically so real products can be loaded before any storefront work begins. The rest of admin (order queue, discounts, shipping & fees settings) moves to sequence with/after checkout instead, since none of it is useful until real orders exist. Updated the feature table above to match.
+- **2026-07-07** — **Ratified the constitution, v1.0.0.** Closed out the Sync Impact Report's drafting narrative (the day-and-a-half of refinement is preserved in `CHANGELOG.md`/this file, not repeated in the constitution itself) and updated the version/ratified date. All six ADRs, the expanded MVP scope, and the softened accessibility bar are now the settled ground rules, not a moving draft.
 
 ## Next steps
 
-1. Ratify the constitution (or amend it first, if anything above needs adjusting).
-2. Run `/speckit-specify` for feature 1 (admin product management) — the app now runs, but no product feature has gone through the Spec Kit cycle yet.
-3. Work through the rest of the MVP feature list above in order, each through the full spec → plan → tasks → implement cycle, per the confirmed plan-all-before-implement workflow.
+1. Run `/speckit-specify` for feature 1 (admin product management) — the app now runs, but no product feature has gone through the Spec Kit cycle yet.
+2. Work through the rest of the MVP feature list above in order, each through the full spec → plan → tasks → implement cycle, per the confirmed plan-all-before-implement workflow.

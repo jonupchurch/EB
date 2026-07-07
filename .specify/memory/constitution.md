@@ -12,51 +12,27 @@ Added principles:
   - VI. Legible History
 Added sections: Technology Constraints, Development Workflow, Governance
 Removed sections: none
-Other changes: pre-ratification updates 2026-07-06 — database engine
-  decided (PostgreSQL, local instance for now; see
-  docs/adr/0001-postgres-persistence.md) and query layer decided
-  (Drizzle ORM over Prisma; see docs/adr/0002-drizzle-orm.md), both
-  folded into Technology Constraints below. Plan-all-before-implement
-  (Development Workflow) confirmed as a firm rule rather than a
-  tentative carryover; Principle VI (Legible History) tightened to
-  require CHANGELOG.md/status.md updates and a commit+push after every
-  unit of work, not just "significant" pushes. 2026-07-07: Principle
-  III's accessibility bar softened from a hard CI-blocking gate to a
-  target/best-effort goal — WCAG 2.1 AA is still the aim, but this is a
-  small business's site, not one under compliance exposure requiring
-  it; docs/non-functional.md updated to match. Also 2026-07-07,
-  following review of Resources/models/*.md: Principle IV's MVP
-  expanded to include promotions/discounts, tax-calculation-API-driven
-  sales tax, and calculated/carrier-rate shipping (previously listed as
-  out of scope) — the product/customizer decision itself was confirmed
-  to stay out of MVP as already written. 2026-07-07, following review
-  of Resources/wireframes/Admin Screens.html: accepted ADR-0004
-  (darken the muted-gray text token) and ADR-0005 (PayPal for MVP
-  payments, Stripe deferred to fast-follow) — Technology Constraints
-  updated accordingly; also clarified that the admin product editor's
-  processing-type pricing config is MVP scope even though the
-  customer-facing custom-design flow itself remains deferred (see
-  docs/future-work.md). 2026-07-07, following review of
-  Resources/products/Launch Catalog.html (a proposed 22-SKU/5-category
-  day-one launch list): confirmed the catalog's "stockable" label is
-  fulfillment-only, not customer-facing inventory tracking (Principle
-  IV's exclusion stands, clarified in place); flagged the Recipe
-  Board's "handwriting-to-engrave" variant as an actual customer photo
-  upload, conflicting with the deferred custom-design boundary — see
-  docs/future-work.md. 2026-07-07: accepted ADR-0006 (Auth.js for
-  Google SSO, over Clerk) — Technology Constraints updated. Still
-  v1.0.0 draft, not yet ratified.
+Other changes: this version was drafted over 2026-07-06 to 2026-07-07,
+  refined against real brand assets, product models, and wireframes as
+  they arrived rather than written once and frozen — see CHANGELOG.md
+  and status.md for the full blow-by-blow of what changed and why.
+  Settled along the way: PostgreSQL + Drizzle (ADR-0001, ADR-0002),
+  PayPal for MVP payments with Stripe as a fast-follow (ADR-0005),
+  Auth.js for Google SSO (ADR-0006), an MVP scope expanded to include
+  promotions/discounts and tax/shipping calculation, and an
+  accessibility bar that's a target rather than a compliance gate
+  (Principle III). Ratified 2026-07-07.
 Templates requiring updates:
-  ⚠ .specify/templates/plan-template.md — verify no hardcoded principle
-    names before first /speckit-plan run.
-  ⚠ .specify/templates/spec-template.md — verify compatibility.
-  ⚠ .specify/templates/tasks-template.md — verify compatibility.
+  ✅ .specify/templates/plan-template.md — no hardcoded principle names.
+  ✅ .specify/templates/spec-template.md — compatible.
+  ✅ .specify/templates/tasks-template.md — compatible.
 Follow-up TODOs:
   - Choose a hosted/production Postgres provider when deployment is
     actually being set up (docs/adr/0001-postgres-persistence.md).
-  - Choose a tax-calculation API provider (e.g. TaxJar, Avalara, or
-    PayPal's own tax tools) — ADR owed during the checkout feature's
-    planning.
+  - Choose a tax-calculation API provider — leaning TaxJar given Ohio's
+    county-level rate variation (a flat/hand-rolled rate isn't safe
+    even for in-state orders), pending a final check on Erica's exact
+    nexus/rates — ADR owed during the checkout feature's planning.
   - Choose a calculated/carrier-rate shipping provider (e.g. Shippo,
     EasyPost) if the flat-rate-only option isn't sufficient for MVP —
     ADR owed during the cart/checkout feature's planning.
@@ -309,4 +285,4 @@ per Principle I, this project's committed ADRs, specs, and plans are
 authored (or substantively reconciled) through this project's own
 process, so the "process produced this" record stays genuine.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-06 | **Last Amended**: 2026-07-06
+**Version**: 1.0.0 | **Ratified**: 2026-07-07 | **Last Amended**: 2026-07-07
