@@ -40,11 +40,17 @@ truncation or a stuck cart.
 
 ## Accessibility
 
-- WCAG 2.1 AA contrast, keyboard operability, visible focus states,
-  semantic landmarks/roles.
+- **Target**, not a compliance gate (Constitution Principle III) — this
+  is a small business's storefront, not one under the kind of
+  compliance exposure that would make WCAG a legal requirement here.
+  WCAG 2.1 AA contrast, keyboard operability, visible focus states, and
+  semantic landmarks/roles are all things to aim for and close on; a
+  close miss doesn't block a merge.
 - `prefers-reduced-motion` respected for any animated states (product
   customizer, cart transitions).
-- Enforced with automated axe checks in CI.
+- Automated axe checks SHOULD run in CI to surface issues, but findings
+  are prioritized by real impact (can a customer actually complete an
+  order?) rather than treated as an all-or-nothing gate.
 
 ## Payments & compliance
 

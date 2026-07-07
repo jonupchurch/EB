@@ -50,3 +50,29 @@ the product and its architecture evolved.
   after ESLint 10 crashed under `eslint-config-next@16.2.10`'s bundled
   `eslint-plugin-react` (a rule-context API it doesn't support yet).
   `typecheck`, `lint`, `test`, `build`, and `test:e2e` all pass.
+- `docs: confirm plan-all-before-implement and per-unit commit
+  discipline` (`95745cd`) — wrote two previously-implicit workflow
+  preferences directly into the constitution: every MVP feature fully
+  specified/planned/tasked before implementation starts on any of them,
+  and a CHANGELOG.md/status.md update plus commit+push after every unit
+  of work rather than batched.
+
+## 2026-07-07 — Brand assets reviewed; accessibility bar softened
+
+- `docs: review Resources/brand for accessibility` — checked every
+  color used across the six logo SVGs that landed in
+  `Resources/brand/` against WCAG contrast math. The logos themselves
+  check out (all pass in their actual context of use, and all six have
+  proper `role="img"` + `aria-label`s already). One forward-looking
+  note: the light-mode tagline gray (`#8A8378`, 3.75:1 on white) is
+  exempt as logotype text, but shouldn't be reused as real body/UI
+  copy in light mode without darkening it first — same two-tier
+  bright/"-strong" pattern a prior project used for its own
+  near-miss colors.
+- `docs: soften accessibility bar to a target, not a compliance gate`
+  — amended the constitution's Principle III: WCAG 2.1 AA stays the
+  goal, but is no longer a hard CI-blocking rule — a close miss
+  doesn't block a merge. Reflects that this is a small business's site,
+  not one under the compliance exposure that would make WCAG a legal
+  requirement here. Updated `docs/non-functional.md`'s Accessibility
+  section to match.

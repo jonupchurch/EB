@@ -20,7 +20,11 @@ Other changes: pre-ratification updates 2026-07-06 — database engine
   (Development Workflow) confirmed as a firm rule rather than a
   tentative carryover; Principle VI (Legible History) tightened to
   require CHANGELOG.md/status.md updates and a commit+push after every
-  unit of work, not just "significant" pushes. Still v1.0.0 draft, not
+  unit of work, not just "significant" pushes. 2026-07-07: Principle
+  III's accessibility bar softened from a hard CI-blocking gate to a
+  target/best-effort goal — WCAG 2.1 AA is still the aim, but this is a
+  small business's site, not one under compliance exposure requiring
+  it; docs/non-functional.md updated to match. Still v1.0.0 draft, not
   yet ratified.
 Templates requiring updates:
   ⚠ .specify/templates/plan-template.md — verify no hardcoded principle
@@ -96,14 +100,23 @@ design assets produced collaboratively (Claude-assisted design work,
 reviewed against the business's actual branding as it's established).
 Typography, spacing, and color are deliberate choices. Every state MUST
 be designed: empty cart, loading, error, checkout success, and mobile —
-customers will be shopping from their phones. The accessibility target
-is WCAG 2.1 AA — keyboard operability, visible focus, semantic
-landmarks/roles, and AA contrast ratios — enforced with automated axe
-checks in CI; violations block merge.
+customers will be shopping from their phones. The accessibility
+**target** is WCAG 2.1 AA — keyboard operability, visible focus,
+semantic landmarks/roles, and AA contrast ratios. Automated axe checks
+SHOULD run in CI to surface issues, but this is a goal to aim for and
+close on, not a legal compliance gate: a close miss (e.g., a contrast
+ratio just under 4.5:1) does not block a merge on its own. Judgment
+applies — something that would actually leave a real customer unable
+to complete an order (no keyboard access to checkout, an unlabeled
+form field) gets fixed before a cosmetic near-miss does.
 
-Rationale: this storefront's conversion and trustworthiness both depend
-on it reading as a real, considered business, not a template. An
-automated accessibility gate makes that bar checkable, not aspirational.
+Rationale: this is a small business's storefront, not a project facing
+the compliance exposure a larger commercial site would; WCAG AA is a
+quality bar worth aiming for because it's good design discipline and
+widens who can actually use the site, not because it's a legal
+requirement being enforced here. Treating it as a target keeps that
+motivation honest instead of dressing it up as a hard gate it doesn't
+need to be.
 
 ### IV. Product Judgment & Scope Discipline (NON-NEGOTIABLE)
 
