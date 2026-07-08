@@ -32,6 +32,11 @@ export default defineConfig({
       // real Google OAuth. See the reuseExistingServer note above — this
       // only takes effect when Playwright actually starts the server.
       E2E_TEST_AUTH: "true",
+      // Forces src/lib/checkout/{tax,shipping,paypal}.ts to use their
+      // deterministic fakes — real PayPal/TaxJar/Shippo sandbox
+      // credentials exist in .env.local for manual verification, but
+      // must never be exercised by automated e2e runs.
+      CHECKOUT_FAKE_PROVIDERS: "true",
     },
   },
 });

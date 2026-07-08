@@ -29,6 +29,13 @@
       "when": 1783521060072,
       "tag": "0003_condemned_lizard",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783546797444,
+      "tag": "0004_cheerful_giant_man",
+      "breakpoints": true
     }
   ]
 }

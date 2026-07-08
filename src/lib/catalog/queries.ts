@@ -69,6 +69,14 @@ export interface ActiveProductDetail {
   name: string;
   description: string | null;
   basePriceCents: number;
+  // Packaged shipping info (feature 1's FR-017) — not shown anywhere
+  // in this feature's own UI, but needed by feature 3's calculated
+  // shipping-rate lookup, which reuses this query rather than
+  // duplicating it.
+  weightOz: number | null;
+  lengthIn: number | null;
+  widthIn: number | null;
+  heightIn: number | null;
   images: { id: number; url: string }[];
   processingOptions: { id: number; label: string; priceAdjustmentCents: number }[];
   stylingOptions: { id: number; label: string; priceAdjustmentCents: number }[];
@@ -115,6 +123,10 @@ export async function getActiveProduct(id: number): Promise<GetActiveProductResu
       name: row.name,
       description: row.description,
       basePriceCents: row.basePriceCents,
+      weightOz: row.weightOz,
+      lengthIn: row.lengthIn,
+      widthIn: row.widthIn,
+      heightIn: row.heightIn,
       images: row.images.map((img) => ({ id: img.id, url: img.url })),
       processingOptions: row.processingOptions
         .filter(isCustomerSelectable)

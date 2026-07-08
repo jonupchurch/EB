@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   serial,
@@ -282,6 +283,123 @@ export const designLocationOptionsRelations = relations(
 export const productImagesRelations = relations(productImages, ({ one }) => ({
   product: one(products, {
     fields: [productImages.productId],
+    references: [products.id],
+  }),
+}));
+
+// --- Cart & checkout (feature 3) ---
+// Schema shape follows specs/003-cart-checkout/data-model.md. No cart
+// table exists by design (docs/adr/0011-client-side-cart-reference.md)
+// — the cart is a client-held cookie reference, never persisted here.
+
+export const promotionTypeEnum = pgEnum("promotion_type", [
+  "flat",
+  "bogo",
+  "promo_code",
+  "cart_threshold",
+  "free_shipping",
+]);
+
+export const orderStatusEnum = pgEnum("order_status", [
+  "placed",
+  "paid",
+  "in production",
+  "shipped",
+]);
+
+export const shippingMethodEnum = pgEnum("shipping_method", ["flat", "calculated"]);
+
+export const promotions = pgTable(
+  "promotions",
+  {
+    id: serial("id").primaryKey(),
+    type: promotionTypeEnum("type").notNull(),
+    promoCode: text("promo_code"),
+    discountAmountCents: integer("discount_amount_cents"),
+    thresholdCents: integer("threshold_cents"),
+    active: boolean("active").notNull().default(true),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("promotions_promo_code_lower_idx").on(sql`lower(${table.promoCode})`),
+  ],
+);
+
+export const orders = pgTable("orders", {
+  id: serial("id").primaryKey(),
+  status: orderStatusEnum("status").notNull().default("placed"),
+  subtotalCents: integer("subtotal_cents").notNull(),
+  discountCents: integer("discount_cents").notNull().default(0),
+  promotionId: integer("promotion_id").references(() => promotions.id, {
+    onDelete: "set null",
+  }),
+  shippingMethod: shippingMethodEnum("shipping_method").notNull(),
+  shippingCents: integer("shipping_cents").notNull(),
+  taxCents: integer("tax_cents").notNull(),
+  totalCents: integer("total_cents").notNull(),
+  shippingName: text("shipping_name").notNull(),
+  shippingLine1: text("shipping_line1").notNull(),
+  shippingLine2: text("shipping_line2"),
+  shippingCity: text("shipping_city").notNull(),
+  shippingState: text("shipping_state").notNull(),
+  shippingZip: text("shipping_zip").notNull(),
+  shippingCountry: text("shipping_country").notNull(),
+  customerEmail: text("customer_email").notNull(),
+  paypalOrderId: text("paypal_order_id").notNull().unique(),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  confirmationToken: text("confirmation_token").notNull().unique(),
+  confirmationEmailSentAt: timestamp("confirmation_email_sent_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export interface OrderItemOptionSnapshot {
+  category: string;
+  label: string;
+  priceAdjustmentCents: number;
+}
+
+export const orderItems = pgTable("order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id")
+    .notNull()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  productId: integer("product_id").references(() => products.id, {
+    onDelete: "set null",
+  }),
+  productNameSnapshot: text("product_name_snapshot").notNull(),
+  unitPriceCentsSnapshot: integer("unit_price_cents_snapshot").notNull(),
+  quantity: integer("quantity").notNull(),
+  lineTotalCents: integer("line_total_cents").notNull(),
+  selectedOptionsSnapshot: jsonb("selected_options_snapshot")
+    .$type<OrderItemOptionSnapshot[]>()
+    .notNull(),
+});
+
+export const promotionsRelations = relations(promotions, ({ many }) => ({
+  orders: many(orders),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  promotion: one(promotions, {
+    fields: [orders.promotionId],
+    references: [promotions.id],
+  }),
+  items: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
     references: [products.id],
   }),
 }));

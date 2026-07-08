@@ -20,6 +20,10 @@ Format: lightweight [MADR](https://adr.github.io/madr/). Status is one of
 | [0008](0008-neon-for-hosted-postgres.md) | Neon for hosted/production Postgres | Accepted |
 | [0009](0009-vercel-blob-for-product-images.md) | Vercel Blob for product images, uploaded server-side | Accepted |
 | [0010](0010-catalog-rendering-strategy.md) | Dynamic (SSR) rendering for catalog/product pages, not ISR | Accepted |
+| [0011](0011-client-side-cart-reference.md) | Client-held cart reference, not a server-persisted table | Accepted |
+| [0012](0012-taxjar-for-sales-tax.md) | TaxJar for sales tax calculation | Accepted |
+| [0013](0013-shippo-for-carrier-shipping-rates.md) | Shippo for calculated/carrier-rate shipping | Accepted |
+| [0014](0014-paypal-direct-rest-integration.md) | PayPal via direct REST calls, no SDK | Accepted |
 | [0016](0016-styling-material-shared-catalogs.md) | Styling and material as shared, admin-managed catalogs | Accepted |
 
 New decision? Copy `0000-template.md`.

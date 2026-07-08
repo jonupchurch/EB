@@ -18,7 +18,7 @@ etc.).
 | Metric | Target |
 |---|---|
 | Largest Contentful Paint (product/catalog pages) | < 2.5s (Core Web Vitals "Good" threshold) |
-| Checkout step transition | TBD |
+| Checkout step transition | < 1.5s, including one live tax or shipping-rate API call |
 | Interaction responsiveness | no blocking main-thread work > 50ms |
 
 ## Cost
@@ -33,8 +33,8 @@ etc.).
 
 | Guard | Default | Why |
 |---|---|---|
-| Rate limit (checkout/order endpoints) | TBD | abuse control, especially pre-auth if accounts are optional |
-| Promo code attempts per session | TBD | prevent brute-forcing discount codes |
+| Rate limit (checkout/order endpoints) | 30 mutations/min per IP | abuse control, especially pre-auth if accounts are optional — see `src/lib/checkout/rate-limit.ts` |
+| Promo code attempts per session | Bounded by the general checkout rate limit above, not a separate counter | proportionate at this business's scale; revisit with a dedicated counter if real brute-forcing is ever observed |
 
 Upload-size/file-type limits for custom-design uploads aren't listed
 here yet — that's the fast-follow product-customizer feature (out of

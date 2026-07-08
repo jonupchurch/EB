@@ -689,3 +689,59 @@ the product and its architecture evolved.
   need to retry once this deploys, and should see a real error message
   this time if it happens again. `typecheck`/`lint`/`test` (15
   tests)/`test:e2e` (8 tests) all pass.
+
+## 2026-07-08 — Feature 3: Cart & checkout implemented
+
+- `feat: cart & checkout` — implemented feature 3, all 33 tasks. A
+  cookie-held, anonymous cart (`docs/adr/0011-client-side-cart-reference.md`
+  — no `carts` table; every read re-fetches and re-prices fresh from
+  canonical product/option data, never trusting a stored price) feeds
+  a checkout flow: a real TaxJar tax figure, flat or Shippo-calculated
+  shipping (`docs/adr/0012-taxjar-for-sales-tax.md`,
+  `docs/adr/0013-shippo-for-carrier-shipping-rates.md`), and at most
+  one promotion (flat/BOGO/promo-code/cart-threshold/free-shipping —
+  the greatest-value automatic promotion applies if no code is
+  entered; a code always wins if valid and applicable). Payment is
+  PayPal's Orders v2 API called directly via `fetch`, deliberately no
+  SDK (`docs/adr/0014-paypal-direct-rest-integration.md`), so webhook
+  signature verification stays fully inspectable. An order is created
+  as `placed` the instant checkout completes, and is only ever flipped
+  to `paid` by a separately-verified PayPal webhook
+  (`POST /api/webhooks/paypal`) — never by the client-side redirect
+  alone — and the charged total is always recomputed fresh at the
+  moment of payment, never trusted from an earlier checkout-summary
+  call. New `promotions`/`orders`/`order_items` tables — `order_items`
+  is a deliberate frozen JSON snapshot, this project's one exception to
+  typed-relational tables, since a paid order is a historical record
+  that must survive later product/option changes unchanged. Every
+  external integration (TaxJar, Shippo, PayPal) ships behind a small
+  interface with a deterministic fake from the start, gated by a new
+  `CHECKOUT_FAKE_PROVIDERS` flag set only by Vitest's setup and
+  Playwright's `webServer.env` (mirroring the existing `E2E_TEST_AUTH`
+  pattern) — automated tests never touch real sandbox credentials even
+  though real sandbox keys now live in `.env.local`. A test-only fake
+  PayPal approval page (`/checkout/fake-paypal-approval`, gated the
+  same way) stands in for PayPal's real hosted approval screen in e2e,
+  and happens to statically bake into a 404 at production build time
+  besides, since its gating flag is never set for a real build. Found
+  and fixed one real cross-feature gap along the way: feature 2's
+  Product Detail page treated "Design Location" as single-select, but
+  feature 1's data model always specified it as multi-select (one or
+  many per product) — fixed before wiring cart's
+  `designLocationOptionIds` array to it. New Vitest coverage: cart
+  re-pricing/availability, all 5 promotion types, and order total
+  derivation + webhook idempotency — 38 unit tests total now. A new
+  Playwright e2e (`e2e/cart-checkout.spec.ts`) covers the full browse
+  → add to cart → adjust quantity → checkout with a seeded promo code
+  and calculated shipping → pay via the fake PayPal flow → confirm the
+  order stays `placed` until a deliberately-delayed fake webhook
+  arrives and verifies it `paid`, idempotently on a repeat delivery —
+  every breakdown figure (subtotal, discount, shipping, tax, total)
+  asserted to the exact cent — plus separate tests for the empty-cart
+  block and an invalid promo code's specific rejection reason. An ad
+  hoc axe scan of the product/cart/checkout pages (empty and
+  populated) found zero violations. Folded the checkout-step-transition
+  target (<1.5s) and the checkout rate limit (30 mutations/min per IP)
+  into `docs/non-functional.md`'s previously-TBD rows. Full check suite
+  (`typecheck`/`lint`/`test` — 38 tests/`test:e2e` — 11 tests) and a
+  production build all pass.

@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { calculateTotalCents } from "@/lib/pricing";
 import type { ActiveProductDetail } from "@/lib/catalog/queries";
+import { addToCart } from "../../cart/actions";
 
 function formatAdjustment(cents: number): string | null {
   if (cents === 0) return null;
@@ -14,59 +16,106 @@ function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-type OptionCategoryKey =
+// Every option category is single-select except Design Location, which
+// feature 1's data model explicitly allows zero, one, or many of per
+// product (a design can be placed in several locations at once).
+type SingleSelectCategoryKey =
   | "processingOptions"
   | "stylingOptions"
   | "materialOptions"
   | "sizeOptions"
-  | "colorOptions"
-  | "designLocationOptions";
+  | "colorOptions";
 
-const CATEGORY_LABELS: Record<OptionCategoryKey, string> = {
+const SINGLE_SELECT_CATEGORY_LABELS: Record<SingleSelectCategoryKey, string> = {
   processingOptions: "Processing",
   stylingOptions: "Styling",
   materialOptions: "Material",
   sizeOptions: "Size",
   colorOptions: "Color",
-  designLocationOptions: "Design Location",
 };
 
-const CATEGORY_ORDER: OptionCategoryKey[] = [
+const SINGLE_SELECT_CATEGORY_ORDER: SingleSelectCategoryKey[] = [
   "sizeOptions",
   "colorOptions",
   "materialOptions",
   "stylingOptions",
-  "designLocationOptions",
   "processingOptions",
 ];
 
 export function ProductDetail({ product }: { product: ActiveProductDetail }) {
-  const [selections, setSelections] = useState<Record<OptionCategoryKey, number | null>>({
+  const router = useRouter();
+  const [selections, setSelections] = useState<Record<SingleSelectCategoryKey, number | null>>({
     processingOptions: null,
     stylingOptions: null,
     materialOptions: null,
     sizeOptions: null,
     colorOptions: null,
-    designLocationOptions: null,
   });
+  const [designLocationIds, setDesignLocationIds] = useState<number[]>([]);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [added, setAdded] = useState(false);
 
-  function toggleSelection(category: OptionCategoryKey, optionId: number) {
+  function toggleSelection(category: SingleSelectCategoryKey, optionId: number) {
     setSelections((prev) => ({
       ...prev,
       [category]: prev[category] === optionId ? null : optionId,
     }));
+    setAdded(false);
+  }
+
+  function toggleDesignLocation(optionId: number) {
+    setDesignLocationIds((prev) =>
+      prev.includes(optionId) ? prev.filter((id) => id !== optionId) : [...prev, optionId],
+    );
+    setAdded(false);
   }
 
   const totalCents = useMemo(() => {
-    const selectedOptions = CATEGORY_ORDER.flatMap((category) => {
+    const singleSelectOptions = SINGLE_SELECT_CATEGORY_ORDER.flatMap((category) => {
       const selectedId = selections[category];
       if (selectedId === null) return [];
       const option = product[category].find((o) => o.id === selectedId);
       return option ? [{ priceAdjustmentCents: option.priceAdjustmentCents }] : [];
     });
-    return calculateTotalCents(product.basePriceCents, selectedOptions);
-  }, [product, selections]);
+    const designLocationOptions = product.designLocationOptions
+      .filter((o) => designLocationIds.includes(o.id))
+      .map((o) => ({ priceAdjustmentCents: o.priceAdjustmentCents }));
+    return calculateTotalCents(product.basePriceCents, [
+      ...singleSelectOptions,
+      ...designLocationOptions,
+    ]);
+  }, [product, selections, designLocationIds]);
+
+  async function handleAddToCart() {
+    setAdding(true);
+    setAddError(null);
+    setAdded(false);
+    try {
+      const result = await addToCart({
+        productId: product.id,
+        processingOptionId: selections.processingOptions ?? undefined,
+        stylingOptionId: selections.stylingOptions ?? undefined,
+        materialOptionId: selections.materialOptions ?? undefined,
+        sizeOptionId: selections.sizeOptions ?? undefined,
+        colorOptionId: selections.colorOptions ?? undefined,
+        designLocationOptionIds: designLocationIds,
+        quantity,
+      });
+      if (result.ok) {
+        setAdded(true);
+        router.refresh();
+      } else {
+        setAddError(result.fieldErrors?._root ?? "Could not add this item to your cart.");
+      }
+    } catch (error) {
+      setAddError(error instanceof Error ? error.message : "Could not add this item to your cart.");
+    } finally {
+      setAdding(false);
+    }
+  }
 
   const images = product.images.length > 0 ? product.images : null;
   const activeImage = images?.[activeImageIndex] ?? images?.[0];
@@ -113,11 +162,11 @@ export function ProductDetail({ product }: { product: ActiveProductDetail }) {
           )}
 
           <div className="mt-6 flex flex-col gap-6">
-            {CATEGORY_ORDER.filter((category) => product[category].length > 0).map(
+            {SINGLE_SELECT_CATEGORY_ORDER.filter((category) => product[category].length > 0).map(
               (category) => (
                 <fieldset key={category}>
                   <legend className="text-sm font-semibold text-ink">
-                    {CATEGORY_LABELS[category]}
+                    {SINGLE_SELECT_CATEGORY_LABELS[category]}
                   </legend>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {product[category].map((option) => {
@@ -155,11 +204,66 @@ export function ProductDetail({ product }: { product: ActiveProductDetail }) {
                 </fieldset>
               ),
             )}
+
+            {product.designLocationOptions.length > 0 && (
+              <fieldset>
+                <legend className="text-sm font-semibold text-ink">
+                  Design Location <span className="font-normal text-muted">(choose any)</span>
+                </legend>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {product.designLocationOptions.map((option) => {
+                    const selected = designLocationIds.includes(option.id);
+                    const adjustment = formatAdjustment(option.priceAdjustmentCents);
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => toggleDesignLocation(option.id)}
+                        className={
+                          selected
+                            ? "flex items-center gap-1.5 rounded-full bg-teal px-3 py-1.5 text-sm font-medium text-white"
+                            : "flex items-center gap-1.5 rounded-full bg-cream-deep px-3 py-1.5 text-sm font-medium text-ink hover:bg-cream-deeper"
+                        }
+                      >
+                        {option.label}
+                        {adjustment && <span className="opacity-80"> {adjustment}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            )}
           </div>
 
           <div className="mt-8 border-t border-cream-deeper pt-6">
             <p className="text-sm text-muted">Your price</p>
             <p className="text-3xl font-bold text-ink">{formatPrice(totalCents)}</p>
+
+            <div className="mt-4 flex items-center gap-3">
+              <label htmlFor="quantity" className="text-sm font-medium text-ink">
+                Quantity
+              </label>
+              <input
+                id="quantity"
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                className="w-20 rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={adding}
+              className="mt-4 w-full rounded bg-teal px-6 py-3 text-sm font-medium text-white disabled:opacity-50 sm:w-auto"
+            >
+              {adding ? "Adding…" : "Add to Cart"}
+            </button>
+            {added && <p className="mt-2 text-sm text-teal">Added to your cart.</p>}
+            {addError && <p className="mt-2 text-sm text-red-700">{addError}</p>}
           </div>
         </div>
       </div>
