@@ -11,7 +11,7 @@ export default function StorefrontLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-cream-deeper">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-1.5">
           <Link href="/" className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

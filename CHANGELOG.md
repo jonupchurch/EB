@@ -667,3 +667,6 @@ the product and its architecture evolved.
   `h-20`, per Jon's follow-up.
 - `style: bump storefront logo to final size` — one more step, `h-20`
   to `h-24`, per Jon's confirmation this should be the last size pass.
+- `style: tighten storefront header padding` — halved the header's
+  top/bottom padding, `py-3` to `py-1.5`, now that the enlarged logo
+  fills more of the header's height on its own.
