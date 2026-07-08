@@ -1,11 +1,10 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { z } from "zod";
 import { requireAdminSession } from "@/auth";
 import { db } from "@/db";
 import {
-  categories,
   colorOptions,
   designLocationOptions,
   materialOptions,
@@ -74,7 +73,7 @@ async function insertOptionRows(tx: Transaction, productId: number, data: Produc
     await tx.insert(stylingOptions).values(
       data.stylingOptions.map((o) => ({
         productId,
-        label: o.label,
+        stylingCatalogId: o.stylingCatalogId,
         priceAdjustmentCents: o.priceAdjustmentCents,
         sortOrder: o.sortOrder ?? null,
       })),
@@ -84,8 +83,7 @@ async function insertOptionRows(tx: Transaction, productId: number, data: Produc
     await tx.insert(materialOptions).values(
       data.materialOptions.map((o) => ({
         productId,
-        modelNumber: o.modelNumber ?? null,
-        description: o.description,
+        materialCatalogId: o.materialCatalogId,
         priceAdjustmentCents: o.priceAdjustmentCents,
         sortOrder: o.sortOrder ?? null,
       })),
@@ -132,48 +130,9 @@ async function validateCategoryExists(categoryId: number | undefined): Promise<s
   return category ? null : "Selected category no longer exists";
 }
 
-// --- Categories ---
-
-export async function getCategories(): Promise<ActionResult<{ id: number; name: string }[]>> {
-  const session = await requireAdminSession();
-  if (!session) return NOT_AUTHORIZED;
-
-  const rows = await db
-    .select({ id: categories.id, name: categories.name })
-    .from(categories)
-    .orderBy(categories.name);
-
-  return { ok: true, data: rows };
-}
-
-export async function createCategory(
-  name: string,
-): Promise<ActionResult<{ id: number; name: string }>> {
-  const session = await requireAdminSession();
-  if (!session) return NOT_AUTHORIZED;
-  checkAdminRateLimit();
-
-  const trimmed = name.trim();
-  if (!trimmed) {
-    return { ok: false, error: "validation_error", fieldErrors: { name: "Name is required" } };
-  }
-
-  try {
-    const [row] = await db
-      .insert(categories)
-      .values({ name: trimmed })
-      .returning({ id: categories.id, name: categories.name });
-    return { ok: true, data: row };
-  } catch {
-    return {
-      ok: false,
-      error: "validation_error",
-      fieldErrors: { name: "A category with this name already exists" },
-    };
-  }
-}
-
 // --- Products: reads ---
+
+const PRODUCTS_PAGE_SIZE = 20;
 
 export interface ProductListItem {
   id: number;
@@ -182,14 +141,40 @@ export interface ProductListItem {
   variantCount: number;
   basePriceCents: number;
   status: "active" | "draft";
+  thumbnailUrl: string | null;
 }
 
-export async function getProducts(): Promise<ActionResult<ProductListItem[]>> {
+export interface ProductListResult {
+  items: ProductListItem[];
+  page: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+export async function getProducts(
+  options: { page?: number; search?: string } = {},
+): Promise<ActionResult<ProductListResult>> {
   const session = await requireAdminSession();
   if (!session) return NOT_AUTHORIZED;
 
+  const page = Math.max(1, options.page ?? 1);
+  const search = options.search?.trim() ?? "";
+  const whereClause = search
+    ? or(ilike(products.name, `%${search}%`), ilike(products.description, `%${search}%`))
+    : undefined;
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(products)
+    .where(whereClause);
+
+  const totalPages = Math.max(1, Math.ceil(count / PRODUCTS_PAGE_SIZE));
+
   const rows = await db.query.products.findMany({
-    orderBy: (products, { desc }) => [desc(products.createdAt)],
+    where: whereClause,
+    orderBy: [desc(products.createdAt)],
+    limit: PRODUCTS_PAGE_SIZE,
+    offset: (page - 1) * PRODUCTS_PAGE_SIZE,
     with: {
       category: true,
       processingOptions: true,
@@ -198,10 +183,11 @@ export async function getProducts(): Promise<ActionResult<ProductListItem[]>> {
       sizeOptions: true,
       colorOptions: true,
       designLocationOptions: true,
+      images: { orderBy: (images, { asc }) => [asc(images.sortOrder)], limit: 1 },
     },
   });
 
-  const data: ProductListItem[] = rows.map((row) => ({
+  const items: ProductListItem[] = rows.map((row) => ({
     id: row.id,
     name: row.name,
     categoryName: row.category?.name ?? null,
@@ -214,9 +200,10 @@ export async function getProducts(): Promise<ActionResult<ProductListItem[]>> {
       row.designLocationOptions.length,
     basePriceCents: row.basePriceCents,
     status: row.status,
+    thumbnailUrl: row.images[0]?.url ?? null,
   }));
 
-  return { ok: true, data };
+  return { ok: true, data: { items, page, totalPages, totalCount: count } };
 }
 
 export async function getProduct(id: number) {
@@ -366,7 +353,7 @@ export async function duplicateProduct(id: number): Promise<ActionResult<{ id: n
       await tx.insert(stylingOptions).values(
         source.stylingOptions.map((o) => ({
           productId: copy.id,
-          label: o.label,
+          stylingCatalogId: o.stylingCatalogId,
           priceAdjustmentCents: o.priceAdjustmentCents,
           sortOrder: o.sortOrder,
         })),
@@ -376,8 +363,7 @@ export async function duplicateProduct(id: number): Promise<ActionResult<{ id: n
       await tx.insert(materialOptions).values(
         source.materialOptions.map((o) => ({
           productId: copy.id,
-          modelNumber: o.modelNumber,
-          description: o.description,
+          materialCatalogId: o.materialCatalogId,
           priceAdjustmentCents: o.priceAdjustmentCents,
           sortOrder: o.sortOrder,
         })),
@@ -535,6 +521,40 @@ export async function reorderProductImages(
         .where(eq(productImages.id, orderedImageIds[i]));
     }
   });
+
+  return { ok: true, data: null };
+}
+
+// --- Products: delete ---
+// Reverses feature 1 spec.md's original no-hard-delete assumption —
+// see the Assumptions amendment there. The six option tables and
+// product_images cascade at the DB level; this action's own job is
+// deleting the actual Blob-stored files first (reusing
+// removeProductImage's "don't delete if another row references the
+// same URL" check, since duplicated products can share an image URL).
+
+export async function deleteProduct(id: number): Promise<ActionResult<null>> {
+  const session = await requireAdminSession();
+  if (!session) return NOT_AUTHORIZED;
+  checkAdminRateLimit();
+
+  const product = await db.query.products.findFirst({
+    where: (products, { eq }) => eq(products.id, id),
+    with: { images: true },
+  });
+  if (!product) return { ok: false, error: "not_found" };
+
+  for (const image of product.images) {
+    const otherReference = await db.query.productImages.findFirst({
+      where: (productImages, { and, eq, ne }) =>
+        and(eq(productImages.url, image.url), ne(productImages.productId, id)),
+    });
+    if (!otherReference) {
+      await deleteProductImage(image.url);
+    }
+  }
+
+  await db.delete(products).where(eq(products.id, id));
 
   return { ok: true, data: null };
 }

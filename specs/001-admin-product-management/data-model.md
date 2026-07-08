@@ -25,7 +25,7 @@ The sellable item itself.
 | Field | Type | Notes |
 |---|---|---|
 | `id` | identifier | Primary key |
-| `categoryId` | identifier, nullable | FK → Category. Nullable: FR-011 only requires name + base price to save, so a product can exist briefly uncategorized (matches the edge case of saving an incomplete Draft) |
+| `categoryId` | identifier, nullable, `ON DELETE SET NULL` | FK → Category. Nullable: FR-011 only requires name + base price to save, so a product can exist briefly uncategorized (matches the edge case of saving an incomplete Draft); `ON DELETE SET NULL` so deleting a category (FR-018) un-categorizes its products rather than blocking or cascading |
 | `name` | text | **Required** (FR-011) |
 | `description` | text, nullable | Optional at save time |
 | `basePriceCents` | integer | **Required** (FR-011), ≥ 0 |
@@ -57,30 +57,64 @@ them yet (per `docs/future-work.md`'s clarification).
 | `sortOrder` | integer, nullable | Display ordering within the editor |
 | `requiresCustomerUpload` | boolean | Default `false` (FR-016). `true` for options like "Bring your own design"/"Custom design service" that have no working customer order flow yet — lets a later customer-facing feature filter on this flag instead of guessing from `label` text |
 
+## Styling Catalog Entry (`docs/adr/0016`, amended 2026-07-08)
+
+A shared, admin-managed styling value (FR-019) — e.g., garment cut for
+apparel. Carries no price; price stays a per-product decision (see
+Styling Option below).
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | identifier | Primary key |
+| `label` | text | Required, unique (case-insensitive), e.g. "Long Sleeve", "Children" |
+| `sortOrder` | integer, nullable | |
+| `createdAt` | timestamp | Set on insert |
+
 ## Styling Option
 
-A style/cut variant (FR-004) — e.g., garment cut for apparel.
+A product's selection of one Styling Catalog Entry (FR-019), with its
+own price adjustment for that product.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | identifier | Primary key |
 | `productId` | identifier | FK → Product, cascade delete |
-| `label` | text | Required, e.g. "Long Sleeve", "Children" |
-| `priceAdjustmentCents` | integer | Default 0; may be negative (the Admin Screens wireframe shows "Children −$4.00," "Toddler/Infant −$6.00" — a real discount, not just an upcharge) |
+| `stylingCatalogId` | identifier, `ON DELETE CASCADE` | FK → Styling Catalog Entry. Cascade: deleting a catalog entry removes it from any product's configuration (unlike Category's `SET NULL`, since this row is meaningless without its catalog entry) |
+| `priceAdjustmentCents` | integer | Default 0; may be negative (the Admin Screens wireframe shows "Children −$4.00," "Toddler/Infant −$6.00" — a real discount, not just an upcharge). The same catalog entry can price differently on different products |
 | `sortOrder` | integer, nullable | |
+
+Unique on `(productId, stylingCatalogId)` — a product can't select the
+same catalog entry twice.
+
+## Material Catalog Entry (`docs/adr/0016`, amended 2026-07-08)
+
+A shared, admin-managed material value (FR-020) — e.g., a wood species
+or fabric blend. Carries no price; price stays a per-product decision
+(see Material Option below).
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | identifier | Primary key |
+| `modelNumber` | text, nullable | e.g. "BC-3413" — optional per the wireframe (not every material needs one) |
+| `description` | text | Required, e.g. "Triblend, ultra-soft" |
+| `sortOrder` | integer, nullable | |
+| `createdAt` | timestamp | Set on insert |
 
 ## Material Option
 
-A material choice (FR-004) — e.g., a wood species or fabric blend.
+A product's selection of one Material Catalog Entry (FR-020), with its
+own price adjustment for that product.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | identifier | Primary key |
 | `productId` | identifier | FK → Product, cascade delete |
-| `modelNumber` | text, nullable | e.g. "BC-3413" — optional per the wireframe (not every material needs one) |
-| `description` | text | Required, e.g. "Triblend, ultra-soft" |
-| `priceAdjustmentCents` | integer | Default 0; may be negative |
+| `materialCatalogId` | identifier, `ON DELETE CASCADE` | FK → Material Catalog Entry. Cascade, same rationale as Styling Option above |
+| `priceAdjustmentCents` | integer | Default 0; may be negative. The same catalog entry can price differently on different products |
 | `sortOrder` | integer, nullable | |
+
+Unique on `(productId, materialCatalogId)` — a product can't select the
+same catalog entry twice.
 
 ## Size Option
 
@@ -161,7 +195,8 @@ the other's row or the source file.
 - `Product.name`: required, non-empty, reasonable max length (e.g. 200 chars).
 - `Product.basePriceCents`: required, integer, ≥ 0.
 - `Product.categoryId`: optional; if present, must reference an existing Category.
-- Every option row's `label`: required, non-empty.
+- Every Processing/Size/Color/Design Location option row's `label`: required, non-empty.
+- Every Styling/Material Option row's `stylingCatalogId`/`materialCatalogId`: required, must reference an existing catalog entry.
 - Every option row's `priceAdjustmentCents`: required (defaults to 0 if omitted), integer, any sign.
 - A save request with a missing required field is rejected with a
   specific, field-level error (FR-011/FR-012) — never silently dropped
@@ -170,5 +205,20 @@ the other's row or the source file.
 ## State transitions
 
 - `Product.status`: `draft` ⇄ `active`, freely reversible by the owner
-  (FR-006). No other states exist in this feature (no archived/deleted
-  state — see spec.md Assumptions on no hard delete).
+  (FR-006). No archived/soft-deleted state exists — Draft already
+  covers "not ready yet."
+- **Amended 2026-07-08**: a Product can also be permanently hard-deleted
+  (FR-024) — see spec.md Assumptions. This is a real removal, not a
+  status value; the six option tables and Product Image cascade at the
+  DB level, and the action additionally deletes each image's actual
+  Blob file (skipping any URL still referenced by another product's
+  row, e.g. a duplicate).
+
+## List query notes (FR-021, FR-022, FR-023 — amended 2026-07-08)
+
+- The products list query filters by `ILIKE` on `name` OR `description`
+  when a search term is present (FR-021), paginates 20 rows per page
+  (FR-022), and includes each product's first Product Image (ordered
+  by `sortOrder`, limited to 1) for the list thumbnail (FR-023) — all
+  additive to the existing `getProducts` read, no schema change beyond
+  what's already listed above.

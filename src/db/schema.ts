@@ -43,7 +43,9 @@ export const categories = pgTable(
 
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
-  categoryId: integer("category_id").references(() => categories.id),
+  categoryId: integer("category_id").references(() => categories.id, {
+    onDelete: "set null",
+  }),
   name: text("name").notNull(),
   description: text("description"),
   basePriceCents: integer("base_price_cents").notNull(),
@@ -73,26 +75,78 @@ export const processingOptions = pgTable("processing_options", {
     .default(false),
 });
 
-export const stylingOptions = pgTable("styling_options", {
-  id: serial("id").primaryKey(),
-  productId: integer("product_id")
-    .notNull()
-    .references(() => products.id, { onDelete: "cascade" }),
-  label: text("label").notNull(),
-  priceAdjustmentCents: integer("price_adjustment_cents").notNull().default(0),
-  sortOrder: integer("sort_order"),
-});
+// Shared, admin-managed catalogs (docs/adr/0016-styling-material-shared-catalogs.md)
+// — styling/material are picked per product from these, not typed
+// freely per product. Price stays a per-product decision (see the
+// join tables below): the same catalog entry can cost differently,
+// or not apply at all, on different products.
 
-export const materialOptions = pgTable("material_options", {
+export const stylingCatalog = pgTable(
+  "styling_catalog",
+  {
+    id: serial("id").primaryKey(),
+    label: text("label").notNull(),
+    sortOrder: integer("sort_order"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("styling_catalog_label_lower_idx").on(sql`lower(${table.label})`),
+  ],
+);
+
+export const materialCatalog = pgTable("material_catalog", {
   id: serial("id").primaryKey(),
-  productId: integer("product_id")
-    .notNull()
-    .references(() => products.id, { onDelete: "cascade" }),
   modelNumber: text("model_number"),
   description: text("description").notNull(),
-  priceAdjustmentCents: integer("price_adjustment_cents").notNull().default(0),
   sortOrder: integer("sort_order"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
+
+export const stylingOptions = pgTable(
+  "styling_options",
+  {
+    id: serial("id").primaryKey(),
+    productId: integer("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    stylingCatalogId: integer("styling_catalog_id")
+      .notNull()
+      .references(() => stylingCatalog.id, { onDelete: "cascade" }),
+    priceAdjustmentCents: integer("price_adjustment_cents").notNull().default(0),
+    sortOrder: integer("sort_order"),
+  },
+  (table) => [
+    uniqueIndex("styling_options_product_catalog_idx").on(
+      table.productId,
+      table.stylingCatalogId,
+    ),
+  ],
+);
+
+export const materialOptions = pgTable(
+  "material_options",
+  {
+    id: serial("id").primaryKey(),
+    productId: integer("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    materialCatalogId: integer("material_catalog_id")
+      .notNull()
+      .references(() => materialCatalog.id, { onDelete: "cascade" }),
+    priceAdjustmentCents: integer("price_adjustment_cents").notNull().default(0),
+    sortOrder: integer("sort_order"),
+  },
+  (table) => [
+    uniqueIndex("material_options_product_catalog_idx").on(
+      table.productId,
+      table.materialCatalogId,
+    ),
+  ],
+);
 
 export const sizeOptions = pgTable("size_options", {
   id: serial("id").primaryKey(),
@@ -172,6 +226,10 @@ export const stylingOptionsRelations = relations(
       fields: [stylingOptions.productId],
       references: [products.id],
     }),
+    stylingCatalog: one(stylingCatalog, {
+      fields: [stylingOptions.stylingCatalogId],
+      references: [stylingCatalog.id],
+    }),
   }),
 );
 
@@ -182,8 +240,20 @@ export const materialOptionsRelations = relations(
       fields: [materialOptions.productId],
       references: [products.id],
     }),
+    materialCatalog: one(materialCatalog, {
+      fields: [materialOptions.materialCatalogId],
+      references: [materialCatalog.id],
+    }),
   }),
 );
+
+export const stylingCatalogRelations = relations(stylingCatalog, ({ many }) => ({
+  productOptions: many(stylingOptions),
+}));
+
+export const materialCatalogRelations = relations(materialCatalog, ({ many }) => ({
+  productOptions: many(materialOptions),
+}));
 
 export const sizeOptionsRelations = relations(sizeOptions, ({ one }) => ({
   product: one(products, {

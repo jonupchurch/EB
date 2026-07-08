@@ -17,15 +17,14 @@ export const processingOptionSchema = z.object({
 
 export const stylingOptionSchema = z.object({
   id: z.number().int().optional(),
-  label: z.string().min(1, "Label is required"),
+  stylingCatalogId: z.number().int(),
   priceAdjustmentCents: priceAdjustmentCentsSchema,
   sortOrder: z.number().int().optional(),
 });
 
 export const materialOptionSchema = z.object({
   id: z.number().int().optional(),
-  modelNumber: z.string().optional(),
-  description: z.string().min(1, "Description is required"),
+  materialCatalogId: z.number().int(),
   priceAdjustmentCents: priceAdjustmentCentsSchema,
   sortOrder: z.number().int().optional(),
 });
@@ -71,3 +70,14 @@ export const productSchema = z.object({
 });
 
 export type ProductInput = z.infer<typeof productSchema>;
+
+// --- Shared catalogs (styling, material) — see docs/adr/0016 ---
+
+export const stylingCatalogEntrySchema = z.object({
+  label: z.string().min(1, "Label is required"),
+});
+
+export const materialCatalogEntrySchema = z.object({
+  modelNumber: z.string().optional(),
+  description: z.string().min(1, "Description is required"),
+});

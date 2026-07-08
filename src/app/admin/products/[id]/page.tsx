@@ -1,5 +1,8 @@
 import { notFound } from "next/navigation";
-import { getCategories, getProduct, updateProduct } from "../actions";
+import { getCategories } from "../../categories/actions";
+import { getMaterialCatalog } from "../../materials/actions";
+import { getStylingCatalog } from "../../styling/actions";
+import { getProduct, updateProduct } from "../actions";
 import { ProductEditor } from "../product-editor";
 
 export default async function EditProductPage({
@@ -10,9 +13,11 @@ export default async function EditProductPage({
   const { id } = await params;
   const productId = Number(id);
 
-  const [productResult, categoriesResult] = await Promise.all([
+  const [productResult, categoriesResult, stylingResult, materialResult] = await Promise.all([
     getProduct(productId),
     getCategories(),
+    getStylingCatalog(),
+    getMaterialCatalog(),
   ]);
 
   if (!productResult.ok) {
@@ -21,12 +26,16 @@ export default async function EditProductPage({
 
   const product = productResult.data;
   const categories = categoriesResult.ok ? categoriesResult.data : [];
+  const stylingCatalog = stylingResult.ok ? stylingResult.data : [];
+  const materialCatalog = materialResult.ok ? materialResult.data : [];
 
   return (
     <div>
       <h1 className="mb-6 text-2xl font-semibold text-ink">Edit product</h1>
       <ProductEditor
         categories={categories}
+        stylingCatalog={stylingCatalog}
+        materialCatalog={materialCatalog}
         productId={productId}
         initial={{
           name: product.name,

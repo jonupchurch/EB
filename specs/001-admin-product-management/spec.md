@@ -73,6 +73,26 @@ As the business owner, I want to duplicate an existing product's full configurat
 
 ---
 
+### User Story 5 - Manage shared styling/material catalogs, categories, and outdated products (Priority: P5)
+
+As the business owner, I want to manage my categories and my styling/material option lists from their own screens, find and remove products quickly as the catalog grows, and see a photo right on the list, so day-to-day catalog upkeep doesn't require opening every product one at a time.
+
+**Why this priority**: A real quality-of-life layer discovered while actually using the feature day-to-day — valuable, but everything in User Stories 1–4 already works completely without it.
+
+**Independent Test**: Can be fully tested by creating/renaming/deleting a category, a styling option, and a material option from their own screens; confirming a product picks styling/material from those lists instead of free text; searching and paging through a products list of more than 20 items; and deleting a product and confirming it (and its photos) are gone — independent of the create/edit/duplicate flows themselves.
+
+**Acceptance Scenarios**:
+
+1. **Given** the owner is on the Categories screen, **When** she adds, renames, or deletes a category, **Then** the change is reflected immediately, and deleting a category in use simply un-categorizes its products rather than blocking or deleting them.
+2. **Given** the owner is on the Styling (or Material) screen, **When** she adds, renames, or deletes an option, **Then** the change is reflected immediately, and deleting an option in use removes it from any product currently using it.
+3. **Given** the owner is configuring a product's styling or material, **When** she opens the dropdown, **Then** she picks from the shared catalog (with an inline "create new" shortcut) rather than typing a label freely, and still sets her own price adjustment for that product.
+4. **Given** more than 20 products exist, **When** the owner opens the products list, **Then** she sees 20 at a time with a way to page through the rest.
+5. **Given** the owner types into the products list's search box, **When** the text matches part of a product's name or description, **Then** only matching products are shown.
+6. **Given** the products list, **When** the owner views it, **Then** each row shows the product's first photo (or a clear placeholder if it has none) alongside explicit Edit and Delete actions.
+7. **Given** the owner deletes a product, **When** she confirms the action, **Then** the product, its configuration, and its photos are permanently removed and no longer appear anywhere in the admin area.
+
+---
+
 ### Edge Cases
 
 - What happens when someone signs in with a Google account that isn't one of the two authorized accounts? The system MUST deny access with a clear message and MUST NOT expose any admin data or functionality.
@@ -82,6 +102,10 @@ As the business owner, I want to duplicate an existing product's full configurat
 - What happens when a duplicated product is saved without renaming it? The system MUST still save it successfully (as a Draft) rather than blocking on an unedited name.
 - What happens when the owner removes an image from a product? It MUST be removed from that product's display order immediately; it MUST NOT affect any other product (e.g., a duplicated product's copy of that image).
 - What happens when the owner duplicates a product? The duplicate MUST get its own copy of the source's image references (same photos, same order), so removing an image from one product never affects the other.
+- What happens when the owner deletes a category still assigned to products? Those products MUST simply become uncategorized — the delete MUST NOT be blocked and MUST NOT delete or alter the products themselves.
+- What happens when the owner deletes a styling or material catalog entry still selected on one or more products? It MUST be removed from those products' configuration (their own recorded price for it goes with it) rather than blocking the delete.
+- What happens when the owner deletes a product? It MUST be permanently and irreversibly removed, along with its option rows and photos — this is a genuine hard delete (see Assumptions), gated behind an explicit confirmation step.
+- What happens when a search term matches no product? The list MUST show a clear "no results" state, never an error or a stale previous result set.
 
 ## Requirements *(mandatory)*
 
@@ -104,13 +128,22 @@ As the business owner, I want to duplicate an existing product's full configurat
 - **FR-013**: System MUST persist all product and pricing-option data durably, so it survives across sessions and browser restarts.
 - **FR-014**: Owner MUST be able to attach zero or more images to a product, in a defined display order she can rearrange, and remove any attached image.
 - **FR-015**: Owner MUST be able to duplicate a product's attached images along with its other configuration (FR-010), as independent copies that don't affect the source if either is later changed.
+- **FR-018**: Owner MUST be able to create, rename, and delete categories from a dedicated screen; deleting a category in use MUST un-categorize its products rather than block the delete or alter/delete the products.
+- **FR-019**: Owner MUST be able to create, rename, and delete styling options from a dedicated screen, and select a product's styling options from that shared list (with its own per-product price adjustment) rather than typing a label freely; deleting an entry in use MUST remove it from any product's configuration rather than block the delete.
+- **FR-020**: Owner MUST be able to create, rename, and delete material options from a dedicated screen, and select a product's material options from that shared list (with its own per-product price adjustment) rather than typing model number/description freely; deleting an entry in use MUST remove it from any product's configuration rather than block the delete.
+- **FR-021**: System MUST let the owner search the products list by matching text against a product's name or description.
+- **FR-022**: System MUST paginate the products list, showing 20 products per page with a way to move between pages.
+- **FR-023**: Products list MUST show each product's first attached photo (or a clear placeholder if it has none).
+- **FR-024**: Owner MUST be able to permanently delete a product, removing it, its full configuration, and its photos irreversibly, gated behind an explicit confirmation step.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Product**: A sellable item the business offers. Attributes: name, category, description, base price, status (Active/Draft), and its configured set of pricing options below. Owns everything needed to represent one of the ~22 real launch-catalog items (or any future one).
 - **Processing Option**: A way a product's design can be produced or applied (e.g., standard printing/engraving, bring-your-own-design, custom design service), each carrying its own price adjustment relative to the product's base price.
-- **Styling Option**: A style/cut variant of a product (e.g., a garment cut), each carrying its own price adjustment.
-- **Material Option**: A material choice for a product (e.g., a wood species or fabric blend), identified by a model number/description, each carrying its own price adjustment.
+- **Styling Catalog Entry**: A shared, admin-managed styling value (e.g., a garment cut) available for any product to pick from. Carries no price itself.
+- **Styling Option**: A product's selection of one Styling Catalog Entry, carrying its own price adjustment for that product.
+- **Material Catalog Entry**: A shared, admin-managed material value (e.g., a wood species or fabric blend), identified by a model number/description. Carries no price itself.
+- **Material Option**: A product's selection of one Material Catalog Entry, carrying its own price adjustment for that product.
 - **Size Option**: An available size for a product, each with an optional price adjustment.
 - **Color Option**: An available color for a product; open-ended, defined per-product by the owner, not drawn from a fixed system-wide list.
 - **Design Location Option**: A placement location for a design on a product (e.g., front, back, sleeve), one or many per product, each with an optional price adjustment.
@@ -126,11 +159,13 @@ As the business owner, I want to duplicate an existing product's full configurat
 - **SC-004**: The entire initial launch catalog (approximately 22 products across 5 categories) can be fully and accurately represented using only this feature's data model, with zero products requiring a workaround or unsupported configuration.
 - **SC-005**: 100% of saved products have a running total price that exactly equals the sum of the base price and every selected option's price adjustment — no calculation ever drifts from that sum.
 - **SC-006**: Every image the owner attaches to a product is retrievable and displays in the order she set, both immediately and after a save-and-reload cycle.
+- **SC-007**: With more than 20 products in the catalog, the owner can find any specific product (via search or paging) in under 3 interactions.
 
 ## Assumptions
 
 - Categories form a manageable, evolvable list the owner can add to over time (starting with the launch catalog's 5 categories, plus the 2 already-identified phase-2 categories) — not a permanently fixed enumeration.
-- No hard delete of products in this feature; a product is removed from future visibility by setting it to Draft. Permanent deletion, if ever needed, is a separate future decision.
+- **Amended 2026-07-08**: Product deletion is a real, permanent hard delete (FR-024), gated behind confirmation — this reverses the original assumption below, made once the owner actually needed it while using the built feature. ~~No hard delete of products in this feature; a product is removed from future visibility by setting it to Draft. Permanent deletion, if ever needed, is a separate future decision.~~ Draft remains the right choice for "not ready yet, might still finish this"; delete is for "this should no longer exist at all."
+- Styling and material are shared, admin-managed catalogs (FR-019, FR-020, `docs/adr/0016-styling-material-shared-catalogs.md`) — processing, size, color, and design-location remain free-text per product, since only styling/material's real-world values were found to repeat enough across products to justify centralizing.
 - The "variant count" shown in the products list is a computed summary (e.g., how many option groups or combinations are configured), not a separately managed entity of its own.
 - This feature operates entirely on the product catalog data model and has no dependency on orders, carts, customers, or any customer-facing surface — none of those exist yet.
 - Seeding the real ~22-item launch catalog is something the owner does using this feature once it ships; building import/seed tooling is not part of this feature.

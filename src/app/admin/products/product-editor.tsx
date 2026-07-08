@@ -3,9 +3,11 @@
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { calculateTotalCents } from "@/lib/pricing";
+import { createCategory } from "../categories/actions";
+import { createMaterialCatalogEntry } from "../materials/actions";
+import { createStylingCatalogEntry } from "../styling/actions";
 import {
   addProductImage,
-  createCategory,
   removeProductImage,
   reorderProductImages,
   type ActionResult,
@@ -25,11 +27,18 @@ interface ProcessingRow extends LabeledRow {
   requiresCustomerUpload: boolean;
 }
 
+interface StylingRow {
+  _key: string;
+  id?: number;
+  stylingCatalogId: number;
+  priceAdjustmentCents: number;
+  sortOrder?: number | null;
+}
+
 interface MaterialRow {
   _key: string;
   id?: number;
-  modelNumber: string;
-  description: string;
+  materialCatalogId: number;
   priceAdjustmentCents: number;
   sortOrder?: number | null;
 }
@@ -57,14 +66,13 @@ export interface ProductEditorInitialData {
   }>;
   stylingOptions: Array<{
     id: number;
-    label: string;
+    stylingCatalogId: number;
     priceAdjustmentCents: number;
     sortOrder: number | null;
   }>;
   materialOptions: Array<{
     id: number;
-    modelNumber: string | null;
-    description: string;
+    materialCatalogId: number;
     priceAdjustmentCents: number;
     sortOrder: number | null;
   }>;
@@ -101,8 +109,8 @@ export interface ProductEditorSubmitPayload {
   widthIn?: number;
   heightIn?: number;
   processingOptions: Array<{ label: string; priceAdjustmentCents: number; requiresCustomerUpload: boolean }>;
-  stylingOptions: Array<{ label: string; priceAdjustmentCents: number }>;
-  materialOptions: Array<{ modelNumber?: string; description: string; priceAdjustmentCents: number }>;
+  stylingOptions: Array<{ stylingCatalogId: number; priceAdjustmentCents: number }>;
+  materialOptions: Array<{ materialCatalogId: number; priceAdjustmentCents: number }>;
   sizeOptions: Array<{ label: string; priceAdjustmentCents: number }>;
   colorOptions: Array<{ label: string; swatchHex?: string; priceAdjustmentCents: number }>;
   designLocationOptions: Array<{ label: string; priceAdjustmentCents: number }>;
@@ -115,6 +123,8 @@ const MAX_IMAGE_BYTES = 10_000_000;
 
 interface ProductEditorProps {
   categories: { id: number; name: string }[];
+  stylingCatalog: { id: number; label: string }[];
+  materialCatalog: { id: number; modelNumber: string | null; description: string }[];
   initial?: ProductEditorInitialData;
   productId?: number;
   onSubmit: (
@@ -137,6 +147,8 @@ function toLabeledRows(
 
 export function ProductEditor({
   categories: initialCategories,
+  stylingCatalog: initialStylingCatalog,
+  materialCatalog: initialMaterialCatalog,
   initial,
   productId,
   onSubmit,
@@ -148,6 +160,8 @@ export function ProductEditor({
 
   const [categories, setCategories] = useState(initialCategories);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [stylingCatalog, setStylingCatalog] = useState(initialStylingCatalog);
+  const [materialCatalog, setMaterialCatalog] = useState(initialMaterialCatalog);
 
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -164,15 +178,11 @@ export function ProductEditor({
   const [processingOptions, setProcessingOptions] = useState<ProcessingRow[]>(
     (initial?.processingOptions ?? []).map((r) => ({ ...r, _key: nextKey() })),
   );
-  const [stylingOptions, setStylingOptions] = useState<LabeledRow[]>(
-    toLabeledRows(initial?.stylingOptions ?? []),
+  const [stylingOptions, setStylingOptions] = useState<StylingRow[]>(
+    (initial?.stylingOptions ?? []).map((r) => ({ ...r, _key: nextKey() })),
   );
   const [materialOptions, setMaterialOptions] = useState<MaterialRow[]>(
-    (initial?.materialOptions ?? []).map((r) => ({
-      ...r,
-      modelNumber: r.modelNumber ?? "",
-      _key: nextKey(),
-    })),
+    (initial?.materialOptions ?? []).map((r) => ({ ...r, _key: nextKey() })),
   );
   const [sizeOptions, setSizeOptions] = useState<LabeledRow[]>(
     toLabeledRows(initial?.sizeOptions ?? []),
@@ -219,6 +229,38 @@ export function ProductEditor({
       setCategories((prev) => [...prev, result.data].sort((a, b) => a.name.localeCompare(b.name)));
       setCategoryId(result.data.id);
       setNewCategoryName("");
+    }
+  }
+
+  function handleAddExistingStyling(stylingCatalogId: number) {
+    setStylingOptions((prev) => [
+      ...prev,
+      { _key: nextKey(), stylingCatalogId, priceAdjustmentCents: 0 },
+    ]);
+  }
+
+  async function handleCreateStylingCatalogEntry(label: string) {
+    const result = await createStylingCatalogEntry(label);
+    if (result.ok) {
+      setStylingCatalog((prev) =>
+        [...prev, result.data].sort((a, b) => a.label.localeCompare(b.label)),
+      );
+      handleAddExistingStyling(result.data.id);
+    }
+  }
+
+  function handleAddExistingMaterial(materialCatalogId: number) {
+    setMaterialOptions((prev) => [
+      ...prev,
+      { _key: nextKey(), materialCatalogId, priceAdjustmentCents: 0 },
+    ]);
+  }
+
+  async function handleCreateMaterialCatalogEntry(modelNumber: string, description: string) {
+    const result = await createMaterialCatalogEntry(modelNumber || undefined, description);
+    if (result.ok) {
+      setMaterialCatalog((prev) => [...prev, result.data]);
+      handleAddExistingMaterial(result.data.id);
     }
   }
 
@@ -307,12 +349,11 @@ export function ProductEditor({
         requiresCustomerUpload: o.requiresCustomerUpload,
       })),
       stylingOptions: stylingOptions.map((o) => ({
-        label: o.label,
+        stylingCatalogId: o.stylingCatalogId,
         priceAdjustmentCents: o.priceAdjustmentCents,
       })),
       materialOptions: materialOptions.map((o) => ({
-        modelNumber: o.modelNumber || undefined,
-        description: o.description,
+        materialCatalogId: o.materialCatalogId,
         priceAdjustmentCents: o.priceAdjustmentCents,
       })),
       sizeOptions: sizeOptions.map((o) => ({
@@ -487,14 +528,21 @@ export function ProductEditor({
         )}
       />
 
-      <LabeledOptionSection
-        title="Styling"
+      <StylingOptionSection
+        catalog={stylingCatalog}
         rows={stylingOptions}
         setRows={setStylingOptions}
-        newRow={() => ({ _key: nextKey(), label: "", priceAdjustmentCents: 0 })}
+        onAddExisting={handleAddExistingStyling}
+        onCreateNew={handleCreateStylingCatalogEntry}
       />
 
-      <MaterialOptionSection rows={materialOptions} setRows={setMaterialOptions} />
+      <MaterialOptionSection
+        catalog={materialCatalog}
+        rows={materialOptions}
+        setRows={setMaterialOptions}
+        onAddExisting={handleAddExistingMaterial}
+        onCreateNew={handleCreateMaterialCatalogEntry}
+      />
 
       <LabeledOptionSection
         title="Size"
@@ -747,64 +795,235 @@ function LabeledOptionSection<T extends LabeledRow>({
   );
 }
 
-function MaterialOptionSection({
+function StylingOptionSection({
+  catalog,
   rows,
   setRows,
+  onAddExisting,
+  onCreateNew,
 }: {
-  rows: MaterialRow[];
-  setRows: React.Dispatch<React.SetStateAction<MaterialRow[]>>;
+  catalog: { id: number; label: string }[];
+  rows: StylingRow[];
+  setRows: React.Dispatch<React.SetStateAction<StylingRow[]>>;
+  onAddExisting: (catalogId: number) => void;
+  onCreateNew: (label: string) => void;
 }) {
-  function update(key: string, patch: Partial<MaterialRow>) {
-    setRows((prev) => prev.map((r) => (r._key === key ? { ...r, ...patch } : r)));
+  const [selectedId, setSelectedId] = useState<number | "">("");
+  const [newLabel, setNewLabel] = useState("");
+
+  function update(key: string, priceAdjustmentCents: number) {
+    setRows((prev) => prev.map((r) => (r._key === key ? { ...r, priceAdjustmentCents } : r)));
   }
   function remove(key: string) {
     setRows((prev) => prev.filter((r) => r._key !== key));
+  }
+
+  const available = catalog.filter(
+    (c) => !rows.some((r) => r.stylingCatalogId === c.id),
+  );
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold text-ink">Styling</h2>
+      <div className="space-y-2">
+        {rows.map((row) => {
+          const entry = catalog.find((c) => c.id === row.stylingCatalogId);
+          return (
+            <div key={row._key} className="grid grid-cols-[1fr_120px_auto] items-center gap-2">
+              <span className="text-sm text-ink">{entry?.label ?? "(removed from catalog)"}</span>
+              <PriceInput
+                valueCents={row.priceAdjustmentCents}
+                onChangeCents={(cents) => update(row._key, cents)}
+                ariaLabel="Styling option price adjustment"
+                className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+              />
+              <button
+                type="button"
+                onClick={() => remove(row._key)}
+                className="text-sm text-red-700"
+              >
+                Remove
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex gap-2">
+        <select
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value ? Number(e.target.value) : "")}
+          aria-label="Choose a styling option to add"
+          className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+        >
+          <option value="">Choose a styling option…</option>
+          {available.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          disabled={selectedId === ""}
+          onClick={() => {
+            if (selectedId !== "") {
+              onAddExisting(selectedId);
+              setSelectedId("");
+            }
+          }}
+          className="rounded bg-teal px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+        >
+          + Add
+        </button>
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          value={newLabel}
+          onChange={(e) => setNewLabel(e.target.value)}
+          placeholder="New styling option name"
+          aria-label="New styling option name"
+          className="flex-1 rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            const trimmed = newLabel.trim();
+            if (trimmed) {
+              onCreateNew(trimmed);
+              setNewLabel("");
+            }
+          }}
+          className="text-sm font-medium text-teal"
+        >
+          + Create new styling option
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function MaterialOptionSection({
+  catalog,
+  rows,
+  setRows,
+  onAddExisting,
+  onCreateNew,
+}: {
+  catalog: { id: number; modelNumber: string | null; description: string }[];
+  rows: MaterialRow[];
+  setRows: React.Dispatch<React.SetStateAction<MaterialRow[]>>;
+  onAddExisting: (catalogId: number) => void;
+  onCreateNew: (modelNumber: string, description: string) => void;
+}) {
+  const [selectedId, setSelectedId] = useState<number | "">("");
+  const [newModelNumber, setNewModelNumber] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+
+  function update(key: string, priceAdjustmentCents: number) {
+    setRows((prev) => prev.map((r) => (r._key === key ? { ...r, priceAdjustmentCents } : r)));
+  }
+  function remove(key: string) {
+    setRows((prev) => prev.filter((r) => r._key !== key));
+  }
+
+  const available = catalog.filter(
+    (c) => !rows.some((r) => r.materialCatalogId === c.id),
+  );
+
+  function catalogLabel(c: { modelNumber: string | null; description: string }) {
+    return c.modelNumber ? `${c.description} (${c.modelNumber})` : c.description;
   }
 
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold text-ink">Material</h2>
       <div className="space-y-2">
-        {rows.map((row) => (
-          <div key={row._key} className="grid grid-cols-[140px_1fr_120px_auto] items-center gap-2">
-            <input
-              value={row.modelNumber}
-              onChange={(e) => update(row._key, { modelNumber: e.target.value })}
-              placeholder="Model # (optional)"
-              aria-label="Material option model number"
-              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
-            />
-            <input
-              value={row.description}
-              onChange={(e) => update(row._key, { description: e.target.value })}
-              placeholder="Description"
-              aria-label="Material option description"
-              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
-            />
-            <PriceInput
-              valueCents={row.priceAdjustmentCents}
-              onChangeCents={(cents) => update(row._key, { priceAdjustmentCents: cents })}
-              ariaLabel="Material option price adjustment"
-              className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
-            />
-            <button type="button" onClick={() => remove(row._key)} className="text-sm text-red-700">
-              Remove
-            </button>
-          </div>
-        ))}
+        {rows.map((row) => {
+          const entry = catalog.find((c) => c.id === row.materialCatalogId);
+          return (
+            <div key={row._key} className="grid grid-cols-[1fr_120px_auto] items-center gap-2">
+              <span className="text-sm text-ink">
+                {entry ? catalogLabel(entry) : "(removed from catalog)"}
+              </span>
+              <PriceInput
+                valueCents={row.priceAdjustmentCents}
+                onChangeCents={(cents) => update(row._key, cents)}
+                ariaLabel="Material option price adjustment"
+                className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+              />
+              <button
+                type="button"
+                onClick={() => remove(row._key)}
+                className="text-sm text-red-700"
+              >
+                Remove
+              </button>
+            </div>
+          );
+        })}
       </div>
-      <button
-        type="button"
-        onClick={() =>
-          setRows((prev) => [
-            ...prev,
-            { _key: nextKey(), modelNumber: "", description: "", priceAdjustmentCents: 0 },
-          ])
-        }
-        className="text-sm font-medium text-teal"
-      >
-        + Add material option
-      </button>
+
+      <div className="flex gap-2">
+        <select
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value ? Number(e.target.value) : "")}
+          aria-label="Choose a material option to add"
+          className="rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+        >
+          <option value="">Choose a material option…</option>
+          {available.map((c) => (
+            <option key={c.id} value={c.id}>
+              {catalogLabel(c)}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          disabled={selectedId === ""}
+          onClick={() => {
+            if (selectedId !== "") {
+              onAddExisting(selectedId);
+              setSelectedId("");
+            }
+          }}
+          className="rounded bg-teal px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+        >
+          + Add
+        </button>
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          value={newModelNumber}
+          onChange={(e) => setNewModelNumber(e.target.value)}
+          placeholder="Model # (optional)"
+          aria-label="New material option model number"
+          className="w-36 rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+        />
+        <input
+          value={newDescription}
+          onChange={(e) => setNewDescription(e.target.value)}
+          placeholder="New material description"
+          aria-label="New material option description"
+          className="flex-1 rounded border border-cream-deeper bg-white px-2 py-1.5 text-sm text-ink"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            const trimmed = newDescription.trim();
+            if (trimmed) {
+              onCreateNew(newModelNumber.trim(), trimmed);
+              setNewModelNumber("");
+              setNewDescription("");
+            }
+          }}
+          className="text-sm font-medium text-teal"
+        >
+          + Create new material option
+        </button>
+      </div>
     </section>
   );
 }

@@ -47,6 +47,24 @@ export default async function AdminLayout({
           >
             Products
           </Link>
+          <Link
+            href="/admin/categories"
+            className="rounded px-3 py-2 text-sm font-medium text-ink hover:bg-cream-deeper"
+          >
+            Categories
+          </Link>
+          <Link
+            href="/admin/styling"
+            className="rounded px-3 py-2 text-sm font-medium text-ink hover:bg-cream-deeper"
+          >
+            Styling
+          </Link>
+          <Link
+            href="/admin/materials"
+            className="rounded px-3 py-2 text-sm font-medium text-ink hover:bg-cream-deeper"
+          >
+            Materials
+          </Link>
         </nav>
       </aside>
       <div className="flex-1">
