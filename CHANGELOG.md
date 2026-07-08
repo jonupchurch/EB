@@ -654,3 +654,8 @@ the product and its architecture evolved.
   tests) and a production build all pass; the build output confirms
   `/` and `/products/[id]` are both server-rendered on demand (ƒ), not
   statically prerendered, matching ADR-0010's decision.
+- `style: enlarge the storefront header logo` — Jon's live feedback
+  after checking out the new storefront: the header logo read too
+  small. Bumped it from `h-10` to `h-16` and trimmed the header's
+  vertical padding slightly so it doesn't feel oversized against the
+  nav links. Verified visually with a local screenshot.

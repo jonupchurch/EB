@@ -11,13 +11,13 @@ export default function StorefrontLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-cream-deeper">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3">
           <Link href="/" className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/img/ebt-logo-primary.svg"
               alt="Erica Burns Things"
-              className="h-10 w-auto"
+              className="h-16 w-auto"
             />
           </Link>
           <nav className="flex items-center gap-6 text-sm font-medium text-ink">
