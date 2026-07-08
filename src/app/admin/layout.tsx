@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, isAllowedAdminEmail, signOut } from "@/auth";
+
+export const metadata: Metadata = {
+  title: "Erica Burns Things - Admin",
+};
 
 // Session-gated admin shell (Constitution Principle II: admin routes
 // enforce auth checks). The Auth.js signIn callback (src/auth.ts)

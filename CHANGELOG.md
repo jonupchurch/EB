@@ -659,3 +659,9 @@ the product and its architecture evolved.
   small. Bumped it from `h-10` to `h-16` and trimmed the header's
   vertical padding slightly so it doesn't feel oversized against the
   nav links. Verified visually with a local screenshot.
+- `style: admin page title, one more logo size bump` — set the admin
+  area's `<title>` to "Erica Burns Things - Admin" (a `metadata` export
+  on `src/app/admin/layout.tsx`, distinct from the storefront's root
+  title) so admin browser tabs are distinguishable from the storefront.
+  Also bumped the storefront header logo one size further, `h-16` to
+  `h-20`, per Jon's follow-up.

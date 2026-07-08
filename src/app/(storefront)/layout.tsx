@@ -17,7 +17,7 @@ export default function StorefrontLayout({
             <img
               src="/img/ebt-logo-primary.svg"
               alt="Erica Burns Things"
-              className="h-16 w-auto"
+              className="h-20 w-auto"
             />
           </Link>
           <nav className="flex items-center gap-6 text-sm font-medium text-ink">
