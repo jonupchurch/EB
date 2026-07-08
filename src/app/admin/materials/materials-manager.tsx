@@ -25,13 +25,20 @@ export function MaterialsManager({ initial }: { initial: MaterialCatalogListItem
     const trimmed = newDescription.trim();
     if (!trimmed) return;
     setError(null);
-    const result = await createMaterialCatalogEntry(newModelNumber.trim() || undefined, trimmed);
-    if (result.ok) {
-      setEntries((prev) => sortEntries([...prev, { ...result.data, usageCount: 0 }]));
-      setNewModelNumber("");
-      setNewDescription("");
-    } else {
-      setError(result.fieldErrors?.description ?? "Could not create material option");
+    try {
+      const result = await createMaterialCatalogEntry(
+        newModelNumber.trim() || undefined,
+        trimmed,
+      );
+      if (result.ok) {
+        setEntries((prev) => sortEntries([...prev, { ...result.data, usageCount: 0 }]));
+        setNewModelNumber("");
+        setNewDescription("");
+      } else {
+        setError(result.fieldErrors?.description ?? "Could not create material option");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not create material option");
     }
   }
 
@@ -45,20 +52,28 @@ export function MaterialsManager({ initial }: { initial: MaterialCatalogListItem
     const trimmed = editingDescription.trim();
     if (!trimmed) return;
     setError(null);
-    const result = await updateMaterialCatalogEntry(id, editingModelNumber.trim() || undefined, trimmed);
-    if (result.ok) {
-      setEntries((prev) =>
-        sortEntries(
-          prev.map((e) =>
-            e.id === id
-              ? { ...e, modelNumber: result.data.modelNumber, description: result.data.description }
-              : e,
-          ),
-        ),
+    try {
+      const result = await updateMaterialCatalogEntry(
+        id,
+        editingModelNumber.trim() || undefined,
+        trimmed,
       );
-      setEditingId(null);
-    } else {
-      setError(result.fieldErrors?.description ?? "Could not update material option");
+      if (result.ok) {
+        setEntries((prev) =>
+          sortEntries(
+            prev.map((e) =>
+              e.id === id
+                ? { ...e, modelNumber: result.data.modelNumber, description: result.data.description }
+                : e,
+            ),
+          ),
+        );
+        setEditingId(null);
+      } else {
+        setError(result.fieldErrors?.description ?? "Could not update material option");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not update material option");
     }
   }
 
@@ -71,11 +86,15 @@ export function MaterialsManager({ initial }: { initial: MaterialCatalogListItem
       return;
     }
     setError(null);
-    const result = await deleteMaterialCatalogEntry(id);
-    if (result.ok) {
-      setEntries((prev) => prev.filter((e) => e.id !== id));
-    } else {
-      setError("Could not delete material option");
+    try {
+      const result = await deleteMaterialCatalogEntry(id);
+      if (result.ok) {
+        setEntries((prev) => prev.filter((e) => e.id !== id));
+      } else {
+        setError("Could not delete material option");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not delete material option");
     }
   }
 

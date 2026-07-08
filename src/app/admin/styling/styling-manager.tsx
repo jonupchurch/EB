@@ -19,16 +19,20 @@ export function StylingManager({ initial }: { initial: StylingCatalogListItem[] 
     const trimmed = newLabel.trim();
     if (!trimmed) return;
     setError(null);
-    const result = await createStylingCatalogEntry(trimmed);
-    if (result.ok) {
-      setEntries((prev) =>
-        [...prev, { ...result.data, usageCount: 0 }].sort((a, b) =>
-          a.label.localeCompare(b.label),
-        ),
-      );
-      setNewLabel("");
-    } else {
-      setError(result.fieldErrors?.label ?? "Could not create styling option");
+    try {
+      const result = await createStylingCatalogEntry(trimmed);
+      if (result.ok) {
+        setEntries((prev) =>
+          [...prev, { ...result.data, usageCount: 0 }].sort((a, b) =>
+            a.label.localeCompare(b.label),
+          ),
+        );
+        setNewLabel("");
+      } else {
+        setError(result.fieldErrors?.label ?? "Could not create styling option");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not create styling option");
     }
   }
 
@@ -41,16 +45,20 @@ export function StylingManager({ initial }: { initial: StylingCatalogListItem[] 
     const trimmed = editingLabel.trim();
     if (!trimmed) return;
     setError(null);
-    const result = await updateStylingCatalogEntry(id, trimmed);
-    if (result.ok) {
-      setEntries((prev) =>
-        prev
-          .map((e) => (e.id === id ? { ...e, label: result.data.label } : e))
-          .sort((a, b) => a.label.localeCompare(b.label)),
-      );
-      setEditingId(null);
-    } else {
-      setError(result.fieldErrors?.label ?? "Could not rename styling option");
+    try {
+      const result = await updateStylingCatalogEntry(id, trimmed);
+      if (result.ok) {
+        setEntries((prev) =>
+          prev
+            .map((e) => (e.id === id ? { ...e, label: result.data.label } : e))
+            .sort((a, b) => a.label.localeCompare(b.label)),
+        );
+        setEditingId(null);
+      } else {
+        setError(result.fieldErrors?.label ?? "Could not rename styling option");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not rename styling option");
     }
   }
 
@@ -63,11 +71,15 @@ export function StylingManager({ initial }: { initial: StylingCatalogListItem[] 
       return;
     }
     setError(null);
-    const result = await deleteStylingCatalogEntry(id);
-    if (result.ok) {
-      setEntries((prev) => prev.filter((e) => e.id !== id));
-    } else {
-      setError("Could not delete styling option");
+    try {
+      const result = await deleteStylingCatalogEntry(id);
+      if (result.ok) {
+        setEntries((prev) => prev.filter((e) => e.id !== id));
+      } else {
+        setError("Could not delete styling option");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not delete styling option");
     }
   }
 

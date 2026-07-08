@@ -670,3 +670,22 @@ the product and its architecture evolved.
 - `style: tighten storefront header padding` — halved the header's
   top/bottom padding, `py-3` to `py-1.5`, now that the enlarged logo
   fills more of the header's height on its own.
+- `fix: never let an admin write action fail silently` — Jon reported
+  Erica created products on the live site that never showed up
+  anywhere, not even as Draft. Root cause: every admin write handler
+  (`product-editor.tsx`'s save and its three inline "create new
+  category/styling/material" shortcuts, the Categories/Styling/
+  Materials manager pages' create/rename/delete, and the products
+  list's Delete/Duplicate buttons) called its Server Action with no
+  `try`/`catch`. A returned `{ok:false}` was mostly handled, but any
+  *thrown* exception — the admin rate limiter, a transient DB error, a
+  stale session — left the UI stuck (a spinner/disabled button that
+  never resets) with zero visible error and nothing persisted. Wrapped
+  every one of these calls in `try`/`catch`/`finally` so a failure
+  always surfaces a specific, visible message and always resets the
+  pending UI state, matching this project's existing "no silent
+  failures" discipline (already applied to image upload in feature 1).
+  This doesn't recover whatever Erica's attempt actually hit — she'll
+  need to retry once this deploys, and should see a real error message
+  this time if it happens again. `typecheck`/`lint`/`test` (15
+  tests)/`test:e2e` (8 tests) all pass.

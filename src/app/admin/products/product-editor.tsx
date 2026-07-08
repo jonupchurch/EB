@@ -224,11 +224,19 @@ export function ProductEditor({
   async function handleAddCategory() {
     const trimmed = newCategoryName.trim();
     if (!trimmed) return;
-    const result = await createCategory(trimmed);
-    if (result.ok) {
-      setCategories((prev) => [...prev, result.data].sort((a, b) => a.name.localeCompare(b.name)));
-      setCategoryId(result.data.id);
-      setNewCategoryName("");
+    try {
+      const result = await createCategory(trimmed);
+      if (result.ok) {
+        setCategories((prev) =>
+          [...prev, result.data].sort((a, b) => a.name.localeCompare(b.name)),
+        );
+        setCategoryId(result.data.id);
+        setNewCategoryName("");
+      } else {
+        setFieldErrors({ _root: "Could not add category" });
+      }
+    } catch (error) {
+      setFieldErrors({ _root: error instanceof Error ? error.message : "Could not add category" });
     }
   }
 
@@ -240,12 +248,20 @@ export function ProductEditor({
   }
 
   async function handleCreateStylingCatalogEntry(label: string) {
-    const result = await createStylingCatalogEntry(label);
-    if (result.ok) {
-      setStylingCatalog((prev) =>
-        [...prev, result.data].sort((a, b) => a.label.localeCompare(b.label)),
-      );
-      handleAddExistingStyling(result.data.id);
+    try {
+      const result = await createStylingCatalogEntry(label);
+      if (result.ok) {
+        setStylingCatalog((prev) =>
+          [...prev, result.data].sort((a, b) => a.label.localeCompare(b.label)),
+        );
+        handleAddExistingStyling(result.data.id);
+      } else {
+        setFieldErrors({ _root: "Could not add styling option" });
+      }
+    } catch (error) {
+      setFieldErrors({
+        _root: error instanceof Error ? error.message : "Could not add styling option",
+      });
     }
   }
 
@@ -257,10 +273,18 @@ export function ProductEditor({
   }
 
   async function handleCreateMaterialCatalogEntry(modelNumber: string, description: string) {
-    const result = await createMaterialCatalogEntry(modelNumber || undefined, description);
-    if (result.ok) {
-      setMaterialCatalog((prev) => [...prev, result.data]);
-      handleAddExistingMaterial(result.data.id);
+    try {
+      const result = await createMaterialCatalogEntry(modelNumber || undefined, description);
+      if (result.ok) {
+        setMaterialCatalog((prev) => [...prev, result.data]);
+        handleAddExistingMaterial(result.data.id);
+      } else {
+        setFieldErrors({ _root: "Could not add material option" });
+      }
+    } catch (error) {
+      setFieldErrors({
+        _root: error instanceof Error ? error.message : "Could not add material option",
+      });
     }
   }
 
@@ -371,18 +395,28 @@ export function ProductEditor({
       })),
     };
 
-    const result = await onSubmit(payload);
-    setSaving(false);
+    try {
+      const result = await onSubmit(payload);
+      if (!result.ok) {
+        setFieldErrors(result.fieldErrors ?? { _root: "Could not save product" });
+        return;
+      }
 
-    if (!result.ok) {
-      setFieldErrors(result.fieldErrors ?? { _root: "Could not save product" });
-      return;
+      // router.push already fetches fresh RSC data for the destination route
+      // — calling router.refresh() immediately after races the push's own
+      // transition (observed: it can leave the page stuck on the old route).
+      router.push(afterSubmitHref);
+    } catch (error) {
+      // A thrown error (rate limit, a transient DB error, a stale
+      // session) must never leave the form silently stuck with nothing
+      // saved and no feedback — always surface something actionable
+      // (FR-011/FR-012: no silent failures).
+      setFieldErrors({
+        _root: error instanceof Error ? error.message : "Could not save product",
+      });
+    } finally {
+      setSaving(false);
     }
-
-    // router.push already fetches fresh RSC data for the destination route
-    // — calling router.refresh() immediately after races the push's own
-    // transition (observed: it can leave the page stuck on the old route).
-    router.push(afterSubmitHref);
   }
 
   return (

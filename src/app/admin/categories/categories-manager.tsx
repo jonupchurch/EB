@@ -19,16 +19,20 @@ export function CategoriesManager({ initial }: { initial: CategoryListItem[] }) 
     const trimmed = newName.trim();
     if (!trimmed) return;
     setError(null);
-    const result = await createCategory(trimmed);
-    if (result.ok) {
-      setCategories((prev) =>
-        [...prev, { ...result.data, productCount: 0 }].sort((a, b) =>
-          a.name.localeCompare(b.name),
-        ),
-      );
-      setNewName("");
-    } else {
-      setError(result.fieldErrors?.name ?? "Could not create category");
+    try {
+      const result = await createCategory(trimmed);
+      if (result.ok) {
+        setCategories((prev) =>
+          [...prev, { ...result.data, productCount: 0 }].sort((a, b) =>
+            a.name.localeCompare(b.name),
+          ),
+        );
+        setNewName("");
+      } else {
+        setError(result.fieldErrors?.name ?? "Could not create category");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not create category");
     }
   }
 
@@ -41,16 +45,20 @@ export function CategoriesManager({ initial }: { initial: CategoryListItem[] }) 
     const trimmed = editingName.trim();
     if (!trimmed) return;
     setError(null);
-    const result = await updateCategory(id, trimmed);
-    if (result.ok) {
-      setCategories((prev) =>
-        prev
-          .map((c) => (c.id === id ? { ...c, name: result.data.name } : c))
-          .sort((a, b) => a.name.localeCompare(b.name)),
-      );
-      setEditingId(null);
-    } else {
-      setError(result.fieldErrors?.name ?? "Could not rename category");
+    try {
+      const result = await updateCategory(id, trimmed);
+      if (result.ok) {
+        setCategories((prev) =>
+          prev
+            .map((c) => (c.id === id ? { ...c, name: result.data.name } : c))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+        );
+        setEditingId(null);
+      } else {
+        setError(result.fieldErrors?.name ?? "Could not rename category");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not rename category");
     }
   }
 
@@ -63,11 +71,15 @@ export function CategoriesManager({ initial }: { initial: CategoryListItem[] }) 
       return;
     }
     setError(null);
-    const result = await deleteCategory(id);
-    if (result.ok) {
-      setCategories((prev) => prev.filter((c) => c.id !== id));
-    } else {
-      setError("Could not delete category");
+    try {
+      const result = await deleteCategory(id);
+      if (result.ok) {
+        setCategories((prev) => prev.filter((c) => c.id !== id));
+      } else {
+        setError("Could not delete category");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not delete category");
     }
   }
 
