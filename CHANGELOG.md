@@ -585,3 +585,33 @@ the product and its architecture evolved.
   Verified locally: correct button text, no leftover native-input
   text, clicking the label opens the file chooser correctly. Deployed
   and confirmed live.
+- `feat: admin catalog management, product search/pagination, hard delete`
+  — five additions Jon asked for after using feature 1 live, before
+  moving to feature 2. A dedicated Categories management page
+  (create/rename/delete; `ON DELETE SET NULL` un-categorizes rather
+  than blocking/deleting products). Styling and material become
+  shared, admin-managed catalogs picked via dropdown (with an inline
+  "create new" shortcut) instead of typed freely per product — price
+  stays per-product; dedicated `/admin/styling`/`/admin/materials`
+  pages; deleting a catalog entry in use cascades off any product
+  using it (`docs/adr/0016-styling-material-shared-catalogs.md`).
+  Products list gains search (name/description) and pagination
+  (20/page), a thumbnail column, and explicit Edit/Delete actions —
+  delete is a real hard delete, reversing feature 1 spec's original
+  no-hard-delete assumption (spec.md Assumptions amended). Favicon set
+  from the brand seal mark via Next's file-based icon convention.
+  Schema reshape done as a two-step migration to sidestep drizzle-kit's
+  interactive rename-detection prompt (no TTY available in this
+  environment). Deploying surfaced a real gap: Production already had
+  a few `styling_options`/`material_options` rows from Jon's own live
+  testing, left `NULL` in the new catalog columns after the additive
+  first step — the finalizing migration's `SET NOT NULL` correctly
+  rejected them. Fixed by deleting orphaned rows before finalizing
+  (no catalog entry exists for their old free-text label anyway),
+  consistent with this feature's "clean reshape" approach. Verified
+  thoroughly, locally and live: category/styling/material CRUD,
+  cascade vs. set-null delete behavior, a product built via dropdown
+  with per-product pricing persisting on reload, pagination/search
+  across 31 seeded products, product hard-delete (row + Blob images
+  gone), and every page correctly gated. `typecheck`/`lint`/`test`/
+  `test:e2e` (5 tests) and a production build all pass.
