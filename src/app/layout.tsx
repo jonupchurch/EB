@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-// Placeholder metadata — replace once the business name/branding is set
-// (see docs/future-work.md and Constitution Principle III).
 export const metadata: Metadata = {
-  title: "Printing Website",
-  description: "Custom-printed T-shirts, mugs, wood designs, and more.",
+  title: "Erica Burns Things",
+  description:
+    "Custom-printed shirts, mugs, wood signs, totes, and more — made to order by Erica Burns Things.",
 };
 
 export default function RootLayout({

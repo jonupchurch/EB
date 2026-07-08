@@ -615,3 +615,42 @@ the product and its architecture evolved.
   across 31 seeded products, product hard-delete (row + Blob images
   gone), and every page correctly gated. `typecheck`/`lint`/`test`/
   `test:e2e` (5 tests) and a production build all pass.
+
+## 2026-07-08 — Feature 2: Catalog & browsing implemented
+
+- `feat: catalog & browsing storefront` — implemented feature 2, all 17
+  tasks. Removed the placeholder homepage; a new `(storefront)` route
+  group (its own `layout.tsx` — nav/logo/footer — kept separate from
+  `/admin`'s layout, so the two shells never collide) now serves a
+  real, public storefront: a Browse view grouping every Active product
+  by category (thumbnail or placeholder, name, starting price, a
+  category filter), and a Product Detail view (all images, full
+  description, every configured option category as selectable pills,
+  a live running total reusing feature 1's exact `calculateTotalCents`
+  — never a second implementation). Both pages render dynamically
+  (SSR, no ISR/static generation) specifically so a product flipped to
+  Draft is never reachable even for a moment
+  (`docs/adr/0010-catalog-rendering-strategy.md`). A Draft product's
+  detail URL and a nonexistent product's `id` both resolve identically
+  to a branded "not found" page — no product data is ever distinguishable
+  between the two cases, enforced in the query layer (`getActiveProduct`),
+  never client-side. Processing options flagged `requiresCustomerUpload`
+  (the still-deferred customer-upload flow) are excluded the same way —
+  server-side, on the explicit flag, never by guessing from label text.
+  New `src/lib/catalog/{queries.ts,processing-options.ts}`: a pure read
+  layer over feature 1's schema — zero new tables, zero new Server
+  Actions. Vitest covers the processing-option filter (including the
+  "every option excluded" edge case); a new Playwright e2e
+  (`e2e/catalog-browsing.spec.ts`) covers browse → open a product →
+  select and deselect a priced option → confirm the exact total both
+  ways, plus the Draft-url and nonexistent-id not-found cases. Updating
+  the homepage broke the pre-existing `health.spec.ts` "home page
+  loads" assertion (it checked for the old placeholder heading) — fixed
+  to assert on the real Browse view instead. An ad hoc axe scan of both
+  new page types (cleaned up afterward, per this project's established
+  pattern) found zero violations. Folded this feature's concrete LCP
+  target (<2.5s) into `docs/non-functional.md`'s previously-TBD row.
+  Full check suite (`typecheck`/`lint`/`test` — 15 tests/`test:e2e` — 8
+  tests) and a production build all pass; the build output confirms
+  `/` and `/products/[id]` are both server-rendered on demand (ƒ), not
+  statically prerendered, matching ADR-0010's decision.

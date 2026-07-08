@@ -17,7 +17,7 @@ etc.).
 
 | Metric | Target |
 |---|---|
-| Largest Contentful Paint (product/catalog pages) | TBD |
+| Largest Contentful Paint (product/catalog pages) | < 2.5s (Core Web Vitals "Good" threshold) |
 | Checkout step transition | TBD |
 | Interaction responsiveness | no blocking main-thread work > 50ms |
 

@@ -19,6 +19,7 @@ Format: lightweight [MADR](https://adr.github.io/madr/). Status is one of
 | [0007](0007-product-options-schema.md) | Relational tables per option category for product options | Accepted |
 | [0008](0008-neon-for-hosted-postgres.md) | Neon for hosted/production Postgres | Accepted |
 | [0009](0009-vercel-blob-for-product-images.md) | Vercel Blob for product images, uploaded server-side | Accepted |
+| [0010](0010-catalog-rendering-strategy.md) | Dynamic (SSR) rendering for catalog/product pages, not ISR | Accepted |
 | [0016](0016-styling-material-shared-catalogs.md) | Styling and material as shared, admin-managed catalogs | Accepted |
 
 New decision? Copy `0000-template.md`.
