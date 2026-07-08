@@ -665,3 +665,5 @@ the product and its architecture evolved.
   title) so admin browser tabs are distinguishable from the storefront.
   Also bumped the storefront header logo one size further, `h-16` to
   `h-20`, per Jon's follow-up.
+- `style: bump storefront logo to final size` — one more step, `h-20`
+  to `h-24`, per Jon's confirmation this should be the last size pass.
