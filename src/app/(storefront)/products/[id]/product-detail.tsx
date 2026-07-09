@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { calculateTotalCents } from "@/lib/pricing";
 import type { ActiveProductDetail } from "@/lib/catalog/queries";
@@ -262,7 +263,15 @@ export function ProductDetail({ product }: { product: ActiveProductDetail }) {
             >
               {adding ? "Adding…" : "Add to Cart"}
             </button>
-            {added && <p className="mt-2 text-sm text-teal">Added to your cart.</p>}
+            {added && (
+              <p className="mt-2 text-sm text-teal">
+                Added to your cart.{" "}
+                <Link href="/cart" className="underline">
+                  View cart
+                </Link>
+                .
+              </p>
+            )}
             {addError && <p className="mt-2 text-sm text-red-700">{addError}</p>}
           </div>
         </div>

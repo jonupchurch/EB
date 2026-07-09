@@ -1,13 +1,19 @@
 import Link from "next/link";
+import { readCart } from "@/lib/checkout/cart-cookie";
 
 // Real branded storefront shell (spec.md FR-010), kept in its own route
 // group so it never wraps /admin's separate layout (research.md's
 // "Route structure" decision — Next.js nests layouts by directory).
-export default function StorefrontLayout({
+export default async function StorefrontLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Cookie-only read (no DB round trip) — just enough to show a live
+  // item count in the header on every storefront page.
+  const cartLines = await readCart();
+  const cartCount = cartLines.reduce((sum, line) => sum + line.quantity, 0);
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-cream-deeper">
@@ -34,6 +40,14 @@ export default function StorefrontLayout({
             >
               Custom
             </span>
+            <Link href="/cart" className="flex items-center gap-1.5 hover:text-teal">
+              Cart
+              {cartCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-teal px-1.5 text-xs font-semibold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
           </nav>
         </div>
       </header>
