@@ -803,3 +803,40 @@ the product and its architecture evolved.
   violations. Full check suite (`typecheck`/`lint`/`test` — 42
   tests/`test:e2e` — 14 tests) and a
   production build all pass.
+
+## 2026-07-09 — First live verification of features 3 & 4: real production gaps found and fixed
+
+- `chore: install and link the Vercel CLI` — unblocked direct
+  Production env var management and log access from this machine.
+- Provisioned every missing checkout env var in Vercel
+  Production/Preview (PayPal sandbox, TaxJar, Shippo, Resend,
+  `SHOP_ORIGIN_*`) — none had ever been added; checkout was
+  non-functional on the live site regardless of any code change.
+  Rotated `MIGRATE_SECRET` (stale/mismatched between `.env.local` and
+  Production from initial setup) and applied feature 3's
+  never-before-applied migration via the existing idempotent
+  `/api/admin/migrate` endpoint.
+- `fix: point TaxJar at its sandbox API URL when using a sandbox key`
+  (`bac2811`) — the first real checkout attempt 500'd with
+  `TaxjarError: Unauthorized`: `tax.ts` always called TaxJar's
+  production API URL, which rejects a sandbox key. Added
+  `TAXJAR_MODE=sandbox|live`, mirroring `PAYPAL_MODE`.
+- `fix: replace checkout's free-text State field with a state
+  dropdown` (`71b31fc`) — the second attempt 500'd with
+  `TaxjarError: Bad Request - to_zip 44129 is not used within
+  to_state OHIO`: the State field was free-text with no validation,
+  so a full state name reached TaxJar directly. Replaced with a
+  `<select>` of all 50 states + DC (`src/lib/us-states.ts`), validated
+  server-side against the same list.
+- Registered a real PayPal webhook subscription via PayPal's Webhooks
+  API (`PAYMENT.CAPTURE.COMPLETED` → `/api/webhooks/paypal`) — none had
+  ever existed, so a completed sandbox payment finalized on PayPal's
+  side but our webhook handler was never called, leaving the order
+  stuck at `placed` indefinitely (confirmed on the third live attempt:
+  the confirmation page polled for the full 60s window without ever
+  reaching `paid`). Added the resulting `PAYPAL_WEBHOOK_ID` to
+  `.env.local`/Vercel. One specific test order (`confirmationToken`
+  starting `97fd7c61`) is permanently stuck, since PayPal doesn't
+  retroactively redeliver past events to a newly-created subscription
+  and no admin override tool exists yet (feature 5). A fourth full
+  sandbox checkout completed correctly end-to-end, webhook included.
