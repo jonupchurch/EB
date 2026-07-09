@@ -36,6 +36,13 @@
       "when": 1783546797444,
       "tag": "0004_cheerful_giant_man",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783617634790,
+      "tag": "0005_outstanding_hammerhead",
+      "breakpoints": true
     }
   ]
 }

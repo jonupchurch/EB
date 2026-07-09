@@ -27,9 +27,9 @@ No new dependencies or ADRs are owed by this feature — every technology used h
 
 **Purpose**: The one new table this feature adds.
 
-- [ ] T001 [P] Add the `shop_settings` singleton table (`id` fixed at `1`, `flatRateShippingCents` nullable integer, `updatedAt`) to `src/db/schema.ts`, per `data-model.md`
-- [ ] T002 Generate the Drizzle migration (`npm run db:generate`), review the output, and commit it as `drizzle/0003_*.sql` — depends on T001
-- [ ] T003 Apply the migration locally (`npm run db:migrate`) and confirm `shop_settings` exists — depends on T002
+- [X] T001 [P] Add the `shop_settings` singleton table (`id` fixed at `1`, `flatRateShippingCents` nullable integer, `updatedAt`) to `src/db/schema.ts`, per `data-model.md`
+- [X] T002 Generate the Drizzle migration (`npm run db:generate`), review the output, and commit it as `drizzle/0003_*.sql` — depends on T001
+- [X] T003 Apply the migration locally (`npm run db:migrate`) and confirm `shop_settings` exists — depends on T002
 
 **Checkpoint**: Foundation ready — user story work can begin.
 
@@ -43,14 +43,14 @@ No new dependencies or ADRs are owed by this feature — every technology used h
 
 ### Tests for User Story 1
 
-- [ ] T004 [P] [US1] Vitest for order-status transition validation in `tests/admin/order-status.test.ts` — valid transitions (`paid`→`in production`, `in production`→`shipped`) succeed; a skip (`paid`→`shipped`), a reverse, or an attempt to set `paid` directly are each rejected with a specific reason (FR-003, FR-004, FR-005)
+- [X] T004 [P] [US1] Vitest for order-status transition validation in `tests/admin/order-status.test.ts` — valid transitions (`paid`→`in production`, `in production`→`shipped`) succeed; a skip (`paid`→`shipped`), a reverse, or an attempt to set `paid` directly are each rejected with a specific reason (FR-003, FR-004, FR-005)
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Implement `src/lib/admin/order-status.ts` — the allowed-transition map and `advanceOrderStatus` validation logic, per `data-model.md`'s State Transitions
-- [ ] T006 [US1] Implement `listOrders`, `getOrderDetail`, `advanceOrderStatus` Server Actions in `src/app/admin/orders/actions.ts` — `advanceOrderStatus` never accepts `paid` as a target (FR-005) and validates via T005; applies feature 1's admin rate limiter (`src/lib/admin/rate-limit.ts`) — depends on T005
-- [ ] T007 [US1] Implement `src/app/admin/orders/page.tsx` — the order queue (customer name, item count, total, status, placed date, most-recent-first, FR-001) per `Resources/wireframes/Admin Screens.html` — depends on T006
-- [ ] T008 [US1] Implement `src/app/admin/orders/[id]/page.tsx` — the read-only order detail view (line items, shipping address, full breakdown, payment status, FR-002) plus the status-advance control, showing only the single legal next status as an available action — depends on T006, T007
+- [X] T005 [US1] Implement `src/lib/admin/order-status.ts` — the allowed-transition map and `advanceOrderStatus` validation logic, per `data-model.md`'s State Transitions
+- [X] T006 [US1] Implement `listOrders`, `getOrderDetail`, `advanceOrderStatus` Server Actions in `src/app/admin/orders/actions.ts` — `advanceOrderStatus` never accepts `paid` as a target (FR-005) and validates via T005; applies feature 1's admin rate limiter (`src/lib/admin/rate-limit.ts`) — depends on T005
+- [X] T007 [US1] Implement `src/app/admin/orders/page.tsx` — the order queue (customer name, item count, total, status, placed date, most-recent-first, FR-001) per `Resources/wireframes/Admin Screens.html` — depends on T006
+- [X] T008 [US1] Implement `src/app/admin/orders/[id]/page.tsx` — the read-only order detail view (line items, shipping address, full breakdown, payment status, FR-002) plus the status-advance control, showing only the single legal next status as an available action — depends on T006, T007
 
 **Checkpoint**: User Story 1 is fully functional and independently testable (MVP scope).
 
@@ -64,12 +64,12 @@ No new dependencies or ADRs are owed by this feature — every technology used h
 
 ### Tests for User Story 2
 
-- [ ] T009 [P] [US2] Vitest for promotion CRUD in `tests/admin/promotions.test.ts` — a second active promo-code promotion reusing an existing code (any casing) is rejected (FR-010); deactivating, then deleting, a promotion already applied to a real order leaves that order's recorded discount completely unchanged both times (FR-009)
+- [X] T009 [P] [US2] Vitest for promotion CRUD in `tests/admin/promotions.test.ts` — a second active promo-code promotion reusing an existing code (any casing) is rejected (FR-010); deactivating, then deleting, a promotion already applied to a real order leaves that order's recorded discount completely unchanged both times (FR-009)
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Implement `listPromotions`, `createPromotion`, `updatePromotion`, `deletePromotion` Server Actions in `src/app/admin/discounts/actions.ts` — Zod-validates each type's required fields (FR-006); enforces case-insensitive unique `promoCode` among active promotions (FR-010); `deletePromotion` performs no order lookup, relying on the `ON DELETE SET NULL` FK for safety (FR-009); applies feature 1's admin rate limiter
-- [ ] T011 [US2] Implement `src/app/admin/discounts/page.tsx` — promotion list plus a create/edit form showing only the fields relevant to the selected type (FR-006, FR-007), per `Resources/wireframes/Admin Screens.html` — depends on T010
+- [X] T010 [US2] Implement `listPromotions`, `createPromotion`, `updatePromotion`, `deletePromotion` Server Actions in `src/app/admin/discounts/actions.ts` — Zod-validates each type's required fields (FR-006); enforces case-insensitive unique `promoCode` among active promotions (FR-010); `deletePromotion` performs no order lookup, relying on the `ON DELETE SET NULL` FK for safety (FR-009); applies feature 1's admin rate limiter
+- [X] T011 [US2] Implement `src/app/admin/discounts/page.tsx` — promotion list plus a create/edit form showing only the fields relevant to the selected type (FR-006, FR-007), per `Resources/wireframes/Admin Screens.html` — depends on T010
 
 **Checkpoint**: User Stories 1 AND 2 both work independently.
 
@@ -83,9 +83,9 @@ No new dependencies or ADRs are owed by this feature — every technology used h
 
 ### Implementation for User Story 3
 
-- [ ] T012 [US3] Implement `getShopSettings`, `setFlatRateShipping` Server Actions in `src/app/admin/settings/actions.ts` — Zod-validates a non-negative integer (FR-011); `getShopSettings` returns `null` when unset; applies feature 1's admin rate limiter — depends on T001
-- [ ] T013 [US3] Implement `src/app/admin/settings/page.tsx` — the flat-rate shipping amount form, per `Resources/wireframes/Admin Screens.html` — depends on T012
-- [ ] T014 [US3] Update feature 3's `src/lib/checkout/shipping.ts` flat-rate branch to read `getShopSettings().flatRateShippingCents`, falling back to a safe, non-zero built-in default when `null` (FR-012) — depends on T012
+- [X] T012 [US3] Implement `getShopSettings`, `setFlatRateShipping` Server Actions in `src/app/admin/settings/actions.ts` — Zod-validates a non-negative integer (FR-011); `getShopSettings` returns `null` when unset; applies feature 1's admin rate limiter — depends on T001
+- [X] T013 [US3] Implement `src/app/admin/settings/page.tsx` — the flat-rate shipping amount form, per `Resources/wireframes/Admin Screens.html` — depends on T012
+- [X] T014 [US3] Update feature 3's `src/lib/checkout/shipping.ts` flat-rate branch to read `getShopSettings().flatRateShippingCents`, falling back to a safe, non-zero built-in default when `null` (FR-012) — depends on T012
 
 **Checkpoint**: All three user stories are independently functional. The MVP is now feature-complete end to end.
 
@@ -93,13 +93,13 @@ No new dependencies or ADRs are owed by this feature — every technology used h
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T015 [P] Run `quickstart.md`'s manual validation scenarios 1–14
-- [ ] T016 [P] Accessibility spot-check of the real built orders/discounts/settings screens against the already-reviewed wireframe tokens (ADR-0003/ADR-0004)
-- [ ] T017 [P] Playwright e2e in `e2e/admin-orders.spec.ts` — sign in, view the queue, advance an order's status `paid`→`in production`→`shipped`, and confirm an attempted skip or reverse is rejected — depends on T007, T008
-- [ ] T018 [P] Playwright e2e in `e2e/admin-discounts.spec.ts` — create a promotion and confirm it applies correctly at the next checkout (feature 3's fake PayPal/tax/shipping providers) — depends on T011
-- [ ] T019 Playwright e2e in `e2e/full-vertical-slice.spec.ts` — the one happy-path end-to-end test Constitution Principle V has required since ratification: browse the catalog (feature 2) → add to cart (feature 3) → complete checkout and pay via the fake PayPal provider (feature 3) → land on the confirmation page (feature 4) → sign in as admin, confirm the order appears correctly in the queue, and advance it through `in production` → `shipped` (this feature) — depends on features 2–5 all being implemented, and on T006–T008 of this feature
-- [ ] T020 Run `npm run typecheck && npm run lint && npm run test && npm run test:e2e` — all four MUST pass (Principle V) — depends on all prior tasks
-- [ ] T021 Update `status.md` and `CHANGELOG.md` marking feature 5 (admin orders, discounts, shipping & fees) implemented, and noting the MVP is now feature-complete — depends on T020
+- [X] T015 [P] Run `quickstart.md`'s manual validation scenarios 1–14
+- [X] T016 [P] Accessibility spot-check of the real built orders/discounts/settings screens against the already-reviewed wireframe tokens (ADR-0003/ADR-0004)
+- [X] T017 [P] Playwright e2e in `e2e/admin-orders.spec.ts` — sign in, view the queue, advance an order's status `paid`→`in production`→`shipped`, and confirm an attempted skip or reverse is rejected — depends on T007, T008
+- [X] T018 [P] Playwright e2e in `e2e/admin-discounts.spec.ts` — create a promotion and confirm it applies correctly at the next checkout (feature 3's fake PayPal/tax/shipping providers) — depends on T011
+- [X] T019 Playwright e2e in `e2e/full-vertical-slice.spec.ts` — the one happy-path end-to-end test Constitution Principle V has required since ratification: browse the catalog (feature 2) → add to cart (feature 3) → complete checkout and pay via the fake PayPal provider (feature 3) → land on the confirmation page (feature 4) → sign in as admin, confirm the order appears correctly in the queue, and advance it through `in production` → `shipped` (this feature) — depends on features 2–5 all being implemented, and on T006–T008 of this feature
+- [X] T020 Run `npm run typecheck && npm run lint && npm run test && npm run test:e2e` — all four MUST pass (Principle V) — depends on all prior tasks
+- [X] T021 Update `status.md` and `CHANGELOG.md` marking feature 5 (admin orders, discounts, shipping & fees) implemented, and noting the MVP is now feature-complete — depends on T020
 
 ---
 

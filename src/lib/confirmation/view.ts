@@ -33,7 +33,7 @@ export interface ConfirmationView {
   shippingCents: number;
   taxCents: number;
   totalCents: number;
-  status: "placed" | "paid";
+  status: OrderStatus;
 }
 
 export interface ConfirmationOrderRow {
@@ -62,10 +62,11 @@ export interface ConfirmationOrderItemRow {
 }
 
 /**
- * "in production"/"shipped" collapse to "placed" here on purpose — this
- * feature has no way to distinguish them from "placed" (that's a later
- * admin feature's job) and must never imply a stage happened before it
- * did (FR-003).
+ * `order.status` is passed through as-is (feature 5 now drives
+ * `in production`/`shipped`, so this page's timeline reflects them
+ * accurately on every fresh load — FR-003 only ever required never
+ * implying a stage happened before it did, not permanently hiding
+ * stages a later feature learned to set).
  */
 export function buildConfirmationView(
   order: ConfirmationOrderRow,
@@ -94,6 +95,6 @@ export function buildConfirmationView(
     shippingCents: order.shippingCents,
     taxCents: order.taxCents,
     totalCents: order.totalCents,
-    status: order.status === "paid" ? "paid" : "placed",
+    status: order.status,
   };
 }

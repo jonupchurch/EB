@@ -403,3 +403,15 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
     references: [products.id],
   }),
 }));
+
+// A deliberate single-row table (research.md's "single-row table"
+// decision), not a generic key-value store — id is always 1, there is
+// only ever one row. Currently holds the one piece of shop-wide
+// configuration this project has: the flat-rate shipping amount.
+export const shopSettings = pgTable("shop_settings", {
+  id: integer("id").primaryKey(),
+  flatRateShippingCents: integer("flat_rate_shipping_cents"),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

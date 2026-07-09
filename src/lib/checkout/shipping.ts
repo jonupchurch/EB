@@ -5,6 +5,7 @@
 // set (every automated test).
 
 import { Shippo } from "shippo";
+import { getShopSettingsRow } from "@/lib/admin/shop-settings";
 import { getShopOriginAddress } from "./shop-origin";
 
 // This project's business scale doesn't need real multi-item bin
@@ -34,7 +35,9 @@ export type ShippingRateResult =
   | { ok: true; shippingCents: number; label: string }
   | { ok: false; error: "missing_package_info" | "no_rates_available" };
 
-const FLAT_RATE_CENTS = 799;
+// Used whenever the admin hasn't set a flat rate yet (FR-012) —
+// checkout must never error or charge $0 shipping for that reason.
+export const FLAT_RATE_DEFAULT_CENTS = 799;
 
 function usesFakeProviders(): boolean {
   return process.env.CHECKOUT_FAKE_PROVIDERS === "true";
@@ -123,7 +126,9 @@ export async function getShippingRate(
   destination: ShippingDestination,
 ): Promise<ShippingRateResult> {
   if (method === "flat") {
-    return { ok: true, shippingCents: FLAT_RATE_CENTS, label: "Flat rate" };
+    const settings = await getShopSettingsRow();
+    const shippingCents = settings.flatRateShippingCents ?? FLAT_RATE_DEFAULT_CENTS;
+    return { ok: true, shippingCents, label: "Flat rate" };
   }
 
   const parcel = aggregateParcel(items);

@@ -47,6 +47,12 @@ export default async function AdminLayout({
         </div>
         <nav className="flex flex-col gap-1 px-3">
           <Link
+            href="/admin/orders"
+            className="rounded px-3 py-2 text-sm font-medium text-ink hover:bg-cream-deeper"
+          >
+            Orders
+          </Link>
+          <Link
             href="/admin/products"
             className="rounded px-3 py-2 text-sm font-medium text-ink hover:bg-cream-deeper"
           >
@@ -69,6 +75,18 @@ export default async function AdminLayout({
             className="rounded px-3 py-2 text-sm font-medium text-ink hover:bg-cream-deeper"
           >
             Materials
+          </Link>
+          <Link
+            href="/admin/discounts"
+            className="rounded px-3 py-2 text-sm font-medium text-ink hover:bg-cream-deeper"
+          >
+            Discounts
+          </Link>
+          <Link
+            href="/admin/settings"
+            className="rounded px-3 py-2 text-sm font-medium text-ink hover:bg-cream-deeper"
+          >
+            Shipping &amp; Fees
           </Link>
         </nav>
       </aside>

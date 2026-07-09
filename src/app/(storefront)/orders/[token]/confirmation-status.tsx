@@ -3,35 +3,38 @@
 // The "confirming payment" -> "paid" transition (FR-004) and its 60s
 // give-up message (FR-005). Polls the same getOrderConfirmation used
 // for the page's initial render, so a poll and a fresh page load can
-// never disagree.
+// never disagree. Only polls for placed -> paid — the later stages
+// (in production, shipped) are admin-driven (feature 5) and shown
+// accurately on every fresh load/revisit, not live-polled here.
 
 import { useEffect, useState } from "react";
+import type { OrderStatus } from "@/lib/checkout/order-math";
 import { getOrderConfirmation } from "./actions";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 60_000;
 
-type Status = "placed" | "paid";
-
-const STAGES: { key: Status | "in production" | "shipped"; label: string }[] = [
+const STAGES: { key: OrderStatus; label: string }[] = [
   { key: "placed", label: "Placed" },
   { key: "paid", label: "Paid" },
   { key: "in production", label: "In production" },
   { key: "shipped", label: "Shipped" },
 ];
 
+const STAGE_INDEX: Record<OrderStatus, number> = { placed: 0, paid: 1, "in production": 2, shipped: 3 };
+
 export function ConfirmationStatus({
   token,
   initialStatus,
 }: {
   token: string;
-  initialStatus: Status;
+  initialStatus: OrderStatus;
 }) {
-  const [status, setStatus] = useState<Status>(initialStatus);
+  const [status, setStatus] = useState<OrderStatus>(initialStatus);
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    if (status === "paid") return;
+    if (status !== "placed") return;
 
     const startedAt = Date.now();
     const interval = setInterval(() => {
@@ -41,8 +44,8 @@ export function ConfirmationStatus({
         return;
       }
       getOrderConfirmation(token).then((result) => {
-        if (result.ok && result.data.status === "paid") {
-          setStatus("paid");
+        if (result.ok && result.data.status !== "placed") {
+          setStatus(result.data.status);
           clearInterval(interval);
         }
       });
@@ -50,6 +53,8 @@ export function ConfirmationStatus({
 
     return () => clearInterval(interval);
   }, [status, token]);
+
+  const reachedIndex = STAGE_INDEX[status];
 
   return (
     <div className="mt-6">
@@ -66,7 +71,7 @@ export function ConfirmationStatus({
       )}
       <ol className="mt-4 flex flex-wrap gap-4 text-sm">
         {STAGES.map((stage) => {
-          const reached = stage.key === "placed" || (stage.key === "paid" && status === "paid");
+          const reached = STAGE_INDEX[stage.key] <= reachedIndex;
           return (
             <li
               key={stage.key}

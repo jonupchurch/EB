@@ -81,3 +81,21 @@ export const materialCatalogEntrySchema = z.object({
   modelNumber: z.string().optional(),
   description: z.string().min(1, "Description is required"),
 });
+
+// --- Promotions (feature 5) — Zod validates shape only. Which fields
+// are actually required for a given `type` (data-model.md's
+// per-type rules, matching src/lib/checkout/promotions.ts's real
+// evaluation logic) is checked in the Server Action, alongside the
+// promo-code uniqueness check that needs a database query. ---
+
+export const promotionInputSchema = z.object({
+  type: z.enum(["flat", "bogo", "promo_code", "cart_threshold", "free_shipping"]),
+  promoCode: z.string().trim().min(1).optional(),
+  discountAmountCents: z.number().int().min(0).optional(),
+  thresholdCents: z.number().int().min(0).optional(),
+  active: z.boolean().default(true),
+  startsAt: z.coerce.date().optional(),
+  endsAt: z.coerce.date().optional(),
+});
+
+export type PromotionInput = z.infer<typeof promotionInputSchema>;
