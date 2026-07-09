@@ -941,3 +941,15 @@ the product and its architecture evolved.
   found zero violations after the nav-label fix. Full check suite
   (`typecheck`/`lint`/`test` — 61 tests/`test:e2e` — 20 tests) and a
   production build all pass.
+- Pushed feature 6 to Production. `git push` landed `1ebdd17` on
+  `origin/master`, but Vercel's Git-integration auto-deploy never
+  fired — unlike every prior feature's push. Worked around with
+  `vercel deploy --prod`, which built and aliased successfully.
+  Applied the `site_pages` migration via the existing
+  `/api/admin/migrate` endpoint. Verified live: `/api/health` still
+  reports a connected database, `/privacy`/`/terms`/`/about` all
+  return real content, the homepage footer links to all three, and an
+  unauthenticated request to `/admin/content` redirects to sign-in
+  with the correct `callbackUrl`. The auto-deploy miss itself is
+  unresolved — flagged in `status.md`'s Next steps to check the
+  GitHub App connection if it recurs.
