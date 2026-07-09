@@ -840,3 +840,55 @@ the product and its architecture evolved.
   retroactively redeliver past events to a newly-created subscription
   and no admin override tool exists yet (feature 5). A fourth full
   sandbox checkout completed correctly end-to-end, webhook included.
+
+## 2026-07-09 — Feature 5: Admin orders, discounts, shipping & fees implemented — MVP feature-complete
+
+- `feat: admin orders, discounts, shipping & fees` — implemented
+  feature 5, all 21 tasks — the last MVP feature. An order queue
+  (`/admin/orders`) and read-only detail view (`/admin/orders/[id]`)
+  reuse feature 1's Auth.js gate and admin rate limiter directly.
+  Fulfillment status is an explicit, validated state machine
+  (`src/lib/admin/order-status.ts`): `paid` → `in production` →
+  `shipped`, one step at a time — `placed` → `paid` isn't even
+  representable as an admin-settable target, so the UI can only ever
+  offer the single legal next action. Full CRUD over feature 3's
+  `promotions` table (`/admin/discounts`) — Zod validates shape, then
+  per-type required fields are checked against
+  `src/lib/checkout/promotions.ts`'s real evaluation logic, not the
+  wireframe's aspirational percentage-discount/usage-limit/
+  free-processing fields; a duplicate promo code is caught via the
+  existing global case-insensitive unique index. `deletePromotion`
+  stays deliberately thin — safety is the `ON DELETE SET NULL` FK, not
+  application cleanup. One new table, `shop_settings` (a genuine
+  single-row singleton) holds the flat-rate shipping amount
+  (`/admin/settings`); `shipping.ts`'s flat branch now reads it,
+  falling back to the existing $7.99 default when unset. Extracted
+  `PriceInput` into `src/components/price-input.tsx` so every currency
+  field shares one typing-safe implementation. Found and fixed one
+  real regression while writing the full-vertical-slice e2e test:
+  feature 4's confirmation-page timeline had `in production`/`shipped`
+  hardcoded as never-reached, written back when nothing could ever set
+  them — now that this feature can, `buildConfirmationView`/
+  `ConfirmationStatus` reflect the real status on every fresh load.
+  Also caught a real Next.js build break before it ever reached a
+  test: re-exporting a type from a `"use server"` file crashes
+  Turbopack's action-reference transform — fixed by importing types
+  from their source lib modules directly instead. New Vitest coverage:
+  every legal/illegal status transition (`tests/admin/order-status.test.ts`,
+  8 tests) and promotion CRUD — duplicate-code rejection, type-specific
+  field requirements, deactivate-then-delete leaving a real order's
+  discount provably unchanged (`tests/admin/promotions.test.ts`, 3
+  tests) — both directly against the real local database via the same
+  auth-free lib-layer pattern as `order-math.ts`/`confirmation/email.ts`,
+  since `requireAdminSession()` depends on `next/headers` and can't run
+  outside a real request. Three new Playwright e2e specs:
+  `admin-orders.spec.ts`, `admin-discounts.spec.ts`, and
+  `full-vertical-slice.spec.ts` — the one standing happy-path e2e
+  Constitution Principle V has required since ratification (browse →
+  cart → checkout → pay → confirmation → admin queue → fulfillment →
+  confirmation reflects it), finally completable now that every piece
+  it touches exists. An ad hoc axe scan of all four new screens found
+  zero violations; unauthenticated requests to all three new routes
+  confirmed redirecting to sign-in. Full check suite
+  (`typecheck`/`lint`/`test` — 53 tests/`test:e2e` — 17 tests) and a
+  production build all pass.
