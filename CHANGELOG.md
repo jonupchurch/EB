@@ -745,3 +745,61 @@ the product and its architecture evolved.
   into `docs/non-functional.md`'s previously-TBD rows. Full check suite
   (`typecheck`/`lint`/`test` — 38 tests/`test:e2e` — 11 tests) and a
   production build all pass.
+
+## 2026-07-09 — Storefront cart link fix & Feature 4: Order confirmation implemented
+
+- `fix: link to the cart from the storefront header and product page`
+  — Jon found that after adding an item to cart, there was no way to
+  reach `/cart` — the page itself worked, but nothing in the UI ever
+  linked to it (not the header nav, not the add-to-cart confirmation).
+  Added a "Cart" link to the storefront header with a live item-count
+  badge (read cheaply from the cart cookie, no extra DB round trip)
+  and a "View cart" link on the add-to-cart confirmation message.
+  `typecheck`/`lint`/`test` (38 tests) all pass.
+- `feat: order confirmation` — implemented feature 4, all 15 tasks. A
+  public confirmation page at `/orders/[confirmationToken]` (never
+  `orders.id` — FR-012) shows every line item, shipping address, full
+  price breakdown, and a status timeline. While payment is still
+  `placed`, the page polls `getOrderConfirmation` every 2 seconds and
+  resolves to `paid` on its own within seconds of the webhook
+  arriving, no manual refresh needed, or shows a "may need attention"
+  message after 60 seconds (FR-004, FR-005). Renders fully dynamically
+  (`export const dynamic = "force-dynamic"`) so a bookmarked or emailed
+  link always reflects current state, never a stale snapshot (FR-010).
+  The instant feature 3's PayPal webhook marks an order paid,
+  `sendConfirmationEmail` (`src/lib/confirmation/email.ts`) fires — an
+  atomic conditional `UPDATE ... RETURNING` (checks
+  `status = 'paid' AND confirmationEmailSentAt IS NULL` and claims the
+  send in the same operation) guarantees exactly one email even under
+  a redelivered webhook (FR-008); a Resend delivery failure is caught
+  and logged, never affecting the order or the page (FR-009). Resend
+  joins the established fake-provider pattern behind the same
+  `CHECKOUT_FAKE_PROVIDERS` flag as TaxJar/Shippo/PayPal
+  (`docs/adr/0015-resend-for-transactional-email.md`). Found and fixed
+  two real gaps along the way, both zero-cost since neither had
+  shipped yet: (1) `checkout/return` was still feature 3's placeholder
+  "thank you" text — spec.md called for this feature to replace it,
+  so it now resolves the PayPal-side token to the order's
+  `confirmationToken` and redirects straight to the real confirmation
+  page, with feature 3's own e2e updated to match; (2)
+  `createOrderAndPayment` never cleared the cart cookie after
+  successfully creating an order, so purchased items would linger in
+  the cart indefinitely — fixed with a `writeCart([])` right after the
+  order transaction commits. New Vitest coverage
+  (`tests/confirmation/email.test.ts`, 4 tests) covers the send-once
+  idempotency guard directly against the real local database — a
+  first for this project's business-logic tests, since the guarantee
+  is fundamentally about atomic DB behavior rather than something a
+  pure function can represent — sends once for a paid/unsent order,
+  never resends, never sends for a not-yet-paid order, and catches a
+  forced delivery failure without throwing or losing the order's paid
+  status. A new Playwright e2e (`e2e/order-confirmation.spec.ts`, 3
+  tests) covers the full field set on the confirming state, the
+  confirming-to-paid transition resolving with no page reload (proving
+  the client-side polling actually works), a revisit showing the same
+  accurate state, a nonexistent-token not-found case, and that two
+  different orders' pages never cross-expose each other's data. An ad
+  hoc axe scan (confirming, paid, and not-found states) found zero
+  violations. Full check suite (`typecheck`/`lint`/`test` — 42
+  tests/`test:e2e` — 14 tests) and a
+  production build all pass.
