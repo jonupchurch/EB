@@ -88,24 +88,35 @@ export default async function AdminLayout({
           >
             Shipping &amp; Fees
           </Link>
+          <Link
+            href="/admin/content"
+            className="rounded px-3 py-2 text-sm font-medium text-ink hover:bg-cream-deeper"
+          >
+            Content
+          </Link>
         </nav>
       </aside>
       <div className="flex-1">
         <header className="flex items-center justify-between border-b border-cream-deeper px-6 py-4">
-          <p className="text-sm text-muted">{session.user.email}</p>
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/" });
-            }}
-          >
-            <button
-              type="submit"
-              className="text-sm font-medium text-teal hover:underline"
+          <Link href="/" className="text-sm font-medium text-teal hover:underline">
+            ← Back to site
+          </Link>
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-muted">{session.user.email}</p>
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/" });
+              }}
             >
-              Sign out
-            </button>
-          </form>
+              <button
+                type="submit"
+                className="text-sm font-medium text-teal hover:underline"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </header>
         <main className="p-6">{children}</main>
       </div>

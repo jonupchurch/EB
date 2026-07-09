@@ -64,7 +64,7 @@ test("admin can view the order queue and advance a paid order through fulfillmen
   await expect(row.getByText("Paid", { exact: true })).toBeVisible();
 
   // Detail (US1, FR-002) — read-only, every field shown
-  await row.getByRole("link", { name: `#${order.id}` }).click();
+  await row.getByRole("link", { name: `Order #${order.id}, ${customerName}` }).click();
   await expect(page.getByRole("heading", { name: `Order #${order.id}` })).toBeVisible();
   await expect(page.getByText(customerName).first()).toBeVisible();
   await expect(page.getByText("buyer@example.com")).toBeVisible();

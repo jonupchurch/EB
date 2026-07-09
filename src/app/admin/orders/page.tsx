@@ -46,11 +46,12 @@ export default async function OrdersPage() {
           </thead>
           <tbody>
             {orders.map((order) => (
-              <tr key={order.id} className="border-b border-cream-deeper">
+              <tr key={order.id} className="relative border-b border-cream-deeper hover:bg-cream-deep">
                 <td className="py-2 pr-4">
                   <Link
                     href={`/admin/orders/${order.id}`}
-                    className="font-medium text-ink hover:underline"
+                    className="font-medium text-ink after:absolute after:inset-0"
+                    aria-label={`Order #${order.id}, ${order.customerName}`}
                   >
                     #{order.id}
                   </Link>

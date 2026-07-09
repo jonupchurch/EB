@@ -26,7 +26,7 @@ export default async function StorefrontLayout({
               className="h-24 w-auto"
             />
           </Link>
-          <nav className="flex items-center gap-6 text-sm font-medium text-ink">
+          <nav aria-label="Primary" className="flex items-center gap-6 text-sm font-medium text-ink">
             <Link href="/" className="hover:text-teal">
               Shop
             </Link>
@@ -55,10 +55,23 @@ export default async function StorefrontLayout({
       <main className="flex-1">{children}</main>
 
       <footer className="border-t border-cream-deeper">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-8 text-sm text-muted">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/ebt-icon-seal.svg" alt="" className="h-8 w-8" />
-          <p>&copy; {new Date().getFullYear()} Erica Burns Things. All rights reserved.</p>
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm text-muted">
+          <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/img/ebt-icon-seal.svg" alt="" className="h-8 w-8" />
+            <p>&copy; {new Date().getFullYear()} Erica Burns Things. All rights reserved.</p>
+          </div>
+          <nav aria-label="Footer" className="flex items-center gap-5">
+            <Link href="/privacy" className="hover:text-teal">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-teal">
+              Terms of Use
+            </Link>
+            <Link href="/about" className="hover:text-teal">
+              About Us
+            </Link>
+          </nav>
         </div>
       </footer>
     </div>

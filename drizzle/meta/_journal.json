@@ -43,6 +43,13 @@
       "when": 1783617634790,
       "tag": "0005_outstanding_hammerhead",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783624168155,
+      "tag": "0006_rich_nextwave",
+      "breakpoints": true
     }
   ]
 }

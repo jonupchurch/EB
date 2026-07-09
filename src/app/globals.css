@@ -19,3 +19,54 @@ body {
   background: var(--color-cream);
   color: var(--color-ink);
 }
+
+/*
+ * Styles admin-authored rich content (feature 6, docs/adr/0017) —
+ * scoped to exactly the tag set sanitizeBodyHtml() ever allows
+ * through, rather than pulling in a full typography plugin for a
+ * seven-tag allowlist.
+ */
+.rich-content h1,
+.rich-content h2,
+.rich-content h3 {
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+.rich-content h1:first-child,
+.rich-content h2:first-child,
+.rich-content h3:first-child {
+  margin-top: 0;
+}
+.rich-content h1 {
+  font-size: 1.5rem;
+}
+.rich-content h2 {
+  font-size: 1.25rem;
+}
+.rich-content h3 {
+  font-size: 1.1rem;
+}
+.rich-content p {
+  margin-bottom: 1em;
+  line-height: 1.6;
+}
+.rich-content ul,
+.rich-content ol {
+  margin: 0 0 1em 1.5em;
+  line-height: 1.6;
+}
+.rich-content ul {
+  list-style: disc;
+}
+.rich-content ol {
+  list-style: decimal;
+}
+.rich-content li {
+  margin-bottom: 0.35em;
+}
+.rich-content a {
+  color: var(--color-teal);
+  text-decoration: underline;
+}

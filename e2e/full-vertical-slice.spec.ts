@@ -80,7 +80,7 @@ test("full vertical slice: browse to cart to checkout to confirmation to admin f
   await expect(row.getByText("Paid", { exact: true })).toBeVisible();
 
   // Advance through fulfillment (feature 5)
-  await row.getByRole("link", { name: /^#\d+$/ }).click();
+  await row.getByRole("link", { name: /^Order #\d+/ }).click();
   await page.getByRole("button", { name: "Mark as In production" }).click();
   await expect(page.getByRole("button", { name: "Mark as Shipped" })).toBeVisible();
   await page.getByRole("button", { name: "Mark as Shipped" }).click();

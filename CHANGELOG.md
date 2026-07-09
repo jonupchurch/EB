@@ -892,3 +892,52 @@ the product and its architecture evolved.
   confirmed redirecting to sign-in. Full check suite
   (`typecheck`/`lint`/`test` — 53 tests/`test:e2e` — 17 tests) and a
   production build all pass.
+
+## 2026-07-09 — Feature 6: Site content pages implemented (first post-MVP feature)
+
+- Two small, direct UI fixes ahead of this feature: `fix: link to the
+  admin site back to the storefront and make order rows fully
+  clickable` — the admin layout gained a "← Back to site" link, and an
+  order-queue row's link now stretches over the whole `<tr>` via an
+  `after:absolute after:inset-0` pseudo-element rather than only the
+  order number being clickable.
+- `feat: site content pages` — implemented feature 6, all 21 tasks,
+  the first post-MVP feature (specify → plan → tasks → implement, same
+  cycle as the MVP). The storefront footer now links to Privacy
+  Policy, Terms of Use, and About Us (`/privacy`, `/terms`, `/about`);
+  each page's title and rich-formatted body are admin-editable through
+  a Tiptap editor at `/admin/content`
+  (`docs/adr/0017-tiptap-and-sanitize-html-for-rich-content.md`), live
+  on save with no deployment — the same immediate-effect pattern as
+  promotions/shipping settings. One new table, `site_pages`, holds
+  only admin-saved overrides; an unedited page falls back to a
+  code-level default (`src/lib/admin/site-pages.ts`) — Privacy/Terms
+  default to the existing placeholder content from `Resources/shared/`
+  (faithfully converted, not rewritten — still the owner's job, now
+  actually possible without a code change), About defaults to a short
+  placeholder message. Every save is sanitized server-side via
+  `sanitize-html`'s allowlist before it ever reaches the database, so
+  the public pages can safely render it via `dangerouslySetInnerHTML`.
+  Two real bugs found via testing, fixed before shipping: (1) the
+  sanitizer's `rel`/`target` link-hardening transform was silently
+  stripped back off by the sanitizer's own attribute allowlist, which
+  didn't list those attributes — external links would have opened
+  same-tab with no `noopener`/`noreferrer`; (2) the footer's new
+  second `<nav>` landmark had no distinguishing label, making it
+  indistinguishable from the header nav for screen-reader landmark
+  navigation — both navs now carry an `aria-label`. Also handled a
+  genuine test-isolation problem unique to this feature: the three
+  content pages are fixed, non-unique slugs rather than a fresh
+  timestamped entity per test, so the "still on its default" and
+  "admin edit" e2e tests would race under Playwright's default
+  parallel execution — fixed with `test.describe.configure({ mode:
+  "serial" })` plus a `beforeAll` cleanup. New Vitest coverage
+  (`tests/admin/site-pages.test.ts`, 8 tests) covers sanitization
+  against real XSS payload shapes and the fallback-default/override
+  logic. A new Playwright e2e (`e2e/site-content-pages.spec.ts`, 3
+  tests) covers the footer→page flow, the unauthenticated-editor
+  redirect, and a full admin edit reflected live on the public page.
+  An ad hoc axe scan of all three public pages and the admin editor
+  found zero violations after the nav-label fix. Full check suite
+  (`typecheck`/`lint`/`test` — 61 tests/`test:e2e` — 20 tests) and a
+  production build all pass.

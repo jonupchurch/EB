@@ -19,6 +19,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@tiptap/react": "^3.27.3",
+    "@tiptap/starter-kit": "^3.27.3",
     "@vercel/blob": "^2.6.0",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.10",
@@ -27,6 +29,7 @@
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "resend": "^6.17.2",
+    "sanitize-html": "^2.17.5",
     "shippo": "^2.18.0",
     "taxjar": "^4.1.0",
     "zod": "^4.4.3"
@@ -38,6 +41,7 @@
     "@types/node": "^26.1.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@types/sanitize-html": "^2.16.1",
     "@vitest/coverage-v8": "^4.1.10",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",

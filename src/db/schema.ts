@@ -415,3 +415,17 @@ export const shopSettings = pgTable("shop_settings", {
     .notNull()
     .defaultNow(),
 });
+
+export const sitePageSlugEnum = pgEnum("site_page_slug", ["privacy", "terms", "about"]);
+
+// Holds only admin-saved overrides (research.md's fallback-default
+// decision) — a page with no row here yet reads a code-level default
+// from src/lib/admin/site-pages.ts instead. Never pre-seeded.
+export const sitePages = pgTable("site_pages", {
+  slug: sitePageSlugEnum("slug").primaryKey(),
+  title: text("title").notNull(),
+  bodyHtml: text("body_html").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
