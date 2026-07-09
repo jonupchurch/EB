@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { orderItems, orders } from "@/db/schema";
 import type { CheckoutActionResult } from "@/lib/checkout/action-result";
 import { getCart, type ResolvedCartLine } from "@/lib/checkout/cart";
+import { writeCart } from "@/lib/checkout/cart-cookie";
 import { computeTotalCents } from "@/lib/checkout/order-math";
 import { createPayPalOrder } from "@/lib/checkout/paypal";
 import {
@@ -246,6 +247,11 @@ export async function createOrderAndPayment(
 
     return order.id;
   });
+
+  // The order now owns these items as a frozen snapshot — leaving them
+  // in the cart would let a customer "still see" already-purchased
+  // items, or re-submit them into a second order.
+  await writeCart([]);
 
   return { ok: true, data: { orderId, paypalApprovalUrl: approvalUrl } };
 }

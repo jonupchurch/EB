@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { shouldMarkOrderPaid } from "@/lib/checkout/order-math";
 import { verifyPayPalWebhook } from "@/lib/checkout/paypal";
+import { sendConfirmationEmail } from "@/lib/confirmation/email";
 
 // The only place an Order is ever marked paid (FR-012, FR-013) — never
 // the client-side redirect/capture call alone. PayPal retries on any
@@ -46,6 +47,10 @@ export async function POST(request: NextRequest) {
     .update(orders)
     .set({ status: "paid", paidAt: new Date() })
     .where(eq(orders.id, order.id));
+
+  // Never throws (feature 4) — a delivery failure must not affect this
+  // handler's own paid-status guarantee (FR-009).
+  await sendConfirmationEmail(order.id);
 
   return NextResponse.json({ ok: true });
 }

@@ -19,8 +19,8 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 [P] Add `resend` as a dependency in `package.json`
-- [ ] T002 [P] Author `docs/adr/0015-resend-for-transactional-email.md` — formalizes Resend as the transactional email provider (Constitution Principle I obligation, per `research.md`)
+- [X] T001 [P] Add `resend` as a dependency in `package.json`
+- [X] T002 [P] Author `docs/adr/0015-resend-for-transactional-email.md` — formalizes Resend as the transactional email provider (Constitution Principle I obligation, per `research.md`)
 
 ---
 
@@ -28,7 +28,7 @@
 
 **Purpose**: The one piece of shared read logic both US1 and US3 depend on.
 
-- [ ] T003 Implement `getOrderConfirmation(token)` Server Action in `src/app/(storefront)/orders/[token]/actions.ts` — resolves `confirmationToken` to an order's items, shipping address, price breakdown, and status; returns `{ ok: false, error: "not_found" }` for an unmatched token, never a partial object (FR-011, `contracts/actions.md`) — depends on feature 3's `orders`/`order_items` tables already existing
+- [X] T003 Implement `getOrderConfirmation(token)` Server Action in `src/app/(storefront)/orders/[token]/actions.ts` — resolves `confirmationToken` to an order's items, shipping address, price breakdown, and status; returns `{ ok: false, error: "not_found" }` for an unmatched token, never a partial object (FR-011, `contracts/actions.md`) — depends on feature 3's `orders`/`order_items` tables already existing
 
 **Checkpoint**: Foundation ready — user story work can begin.
 
@@ -42,12 +42,12 @@
 
 ### Tests for User Story 1
 
-- [ ] T004 [US1] Playwright e2e in `e2e/order-confirmation.spec.ts` covering: the happy path (payment already verified — every line item, shipping address, full breakdown, order identifier, and "placed"+"paid" reached on the timeline); the confirming→paid transition (feature 3's fake PayPal delayed-webhook mode — page shows "confirming payment" then updates to paid within seconds, unprompted); and a nonexistent token (shows "not found," never partial data)
+- [X] T004 [US1] Playwright e2e in `e2e/order-confirmation.spec.ts` covering: the happy path (payment already verified — every line item, shipping address, full breakdown, order identifier, and "placed"+"paid" reached on the timeline); the confirming→paid transition (feature 3's fake PayPal delayed-webhook mode — page shows "confirming payment" then updates to paid within seconds, unprompted); and a nonexistent token (shows "not found," never partial data)
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Implement `src/app/(storefront)/orders/[token]/page.tsx` — renders the confirmation view via `getOrderConfirmation` (T003): on `not_found`, shows the not-found state (FR-011); otherwise shows every line item, shipping address, full price breakdown, order identifier, and a status timeline ("placed" always reached, "paid" reached only if verified, "in production"/"shipped" always shown as upcoming per FR-003) — per `Resources/wireframes/Checkout & Confirmation.html` — depends on T003
-- [ ] T006 [US1] Add client-side polling to the confirmation page — while status is `placed` (not yet paid), re-call `getOrderConfirmation` every 2 seconds; if still not `paid` after 60 seconds, show a "this may need attention" message instead of continuing to poll indefinitely (FR-004, FR-005) — depends on T005
+- [X] T005 [US1] Implement `src/app/(storefront)/orders/[token]/page.tsx` — renders the confirmation view via `getOrderConfirmation` (T003): on `not_found`, shows the not-found state (FR-011); otherwise shows every line item, shipping address, full price breakdown, order identifier, and a status timeline ("placed" always reached, "paid" reached only if verified, "in production"/"shipped" always shown as upcoming per FR-003) — per `Resources/wireframes/Checkout & Confirmation.html` — depends on T003
+- [X] T006 [US1] Add client-side polling to the confirmation page — while status is `placed` (not yet paid), re-call `getOrderConfirmation` every 2 seconds; if still not `paid` after 60 seconds, show a "this may need attention" message instead of continuing to poll indefinitely (FR-004, FR-005) — depends on T005
 
 **Checkpoint**: User Story 1 is fully functional and independently testable (MVP scope).
 
@@ -61,12 +61,12 @@
 
 ### Tests for User Story 2
 
-- [ ] T007 [P] [US2] Vitest in `tests/confirmation/email.test.ts` — an order already marked `confirmationEmailSentAt` is never re-sent; an order not yet `status = 'paid'` is never sent; a simulated provider failure is caught and never propagates (FR-006–FR-009)
+- [X] T007 [P] [US2] Vitest in `tests/confirmation/email.test.ts` — an order already marked `confirmationEmailSentAt` is never re-sent; an order not yet `status = 'paid'` is never sent; a simulated provider failure is caught and never propagates (FR-006–FR-009)
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Implement `sendConfirmationEmail(orderId)` in `src/lib/confirmation/email.ts` — in one operation, checks `status = 'paid'` AND `confirmationEmailSentAt IS NULL` and sets `confirmationEmailSentAt` as part of that same check (e.g. a single conditional `UPDATE ... RETURNING`) so a redelivery can never race past it (FR-008); on success, sends via the Resend client with the same order summary content as the confirmation page; catches and logs any provider failure without throwing (FR-009); ships with a deterministic fake for tests, per this project's established fake-provider pattern — depends on T001
-- [ ] T009 [US2] Wire `sendConfirmationEmail` into `src/app/api/webhooks/paypal/route.ts` (feature 3) — call it immediately after that handler marks an order `paid` — depends on T008
+- [X] T008 [US2] Implement `sendConfirmationEmail(orderId)` in `src/lib/confirmation/email.ts` — in one operation, checks `status = 'paid'` AND `confirmationEmailSentAt IS NULL` and sets `confirmationEmailSentAt` as part of that same check (e.g. a single conditional `UPDATE ... RETURNING`) so a redelivery can never race past it (FR-008); on success, sends via the Resend client with the same order summary content as the confirmation page; catches and logs any provider failure without throwing (FR-009); ships with a deterministic fake for tests, per this project's established fake-provider pattern — depends on T001
+- [X] T009 [US2] Wire `sendConfirmationEmail` into `src/app/api/webhooks/paypal/route.ts` (feature 3) — call it immediately after that handler marks an order `paid` — depends on T008
 
 **Checkpoint**: User Stories 1 AND 2 both work independently.
 
@@ -80,11 +80,11 @@
 
 ### Tests for User Story 3
 
-- [ ] T010 [US3] Extend `e2e/order-confirmation.spec.ts` — revisit a saved confirmation URL after the order's status has changed and confirm the page reflects the new state, not a stale one; request two different orders' tokens and confirm neither ever exposes the other's data (FR-010, SC-003, SC-004)
+- [X] T010 [US3] Extend `e2e/order-confirmation.spec.ts` — revisit a saved confirmation URL after the order's status has changed and confirm the page reflects the new state, not a stale one; request two different orders' tokens and confirm neither ever exposes the other's data (FR-010, SC-003, SC-004)
 
 ### Implementation for User Story 3
 
-- [ ] T011 [US3] Ensure `src/app/(storefront)/orders/[token]/page.tsx` renders dynamically with no static or time-based caching (e.g. `export const dynamic = 'force-dynamic'`) — every visit re-fetches fresh from `getOrderConfirmation` rather than serving a cached snapshot — depends on T005
+- [X] T011 [US3] Ensure `src/app/(storefront)/orders/[token]/page.tsx` renders dynamically with no static or time-based caching (e.g. `export const dynamic = 'force-dynamic'`) — every visit re-fetches fresh from `getOrderConfirmation` rather than serving a cached snapshot — depends on T005
 
 **Checkpoint**: All three user stories are independently functional.
 
@@ -92,10 +92,10 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T012 [P] Run `quickstart.md`'s manual validation scenarios 1–10 (immediate confirmation, status timeline, still-confirming state, timeout message, not found, one-time email, email-failure isolation, revisit later, unguessable URL, privacy/security check)
-- [ ] T013 [P] Accessibility spot-check of the real built confirmation page against the already-reviewed wireframe tokens (ADR-0003/ADR-0004) — cover every state (confirming, paid, timed-out, not-found), not just the happy path (Principle III: target, not a blocking gate)
-- [ ] T014 Run `npm run typecheck && npm run lint && npm run test && npm run test:e2e` — all four MUST pass (Principle V) — depends on all prior tasks
-- [ ] T015 Update `status.md` and `CHANGELOG.md` marking feature 4 (order confirmation) implemented — depends on T014
+- [X] T012 [P] Run `quickstart.md`'s manual validation scenarios 1–10 (immediate confirmation, status timeline, still-confirming state, timeout message, not found, one-time email, email-failure isolation, revisit later, unguessable URL, privacy/security check)
+- [X] T013 [P] Accessibility spot-check of the real built confirmation page against the already-reviewed wireframe tokens (ADR-0003/ADR-0004) — cover every state (confirming, paid, timed-out, not-found), not just the happy path (Principle III: target, not a blocking gate)
+- [X] T014 Run `npm run typecheck && npm run lint && npm run test && npm run test:e2e` — all four MUST pass (Principle V) — depends on all prior tasks
+- [X] T015 Update `status.md` and `CHANGELOG.md` marking feature 4 (order confirmation) implemented — depends on T014
 
 ---
 

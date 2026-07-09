@@ -112,12 +112,20 @@ test("browse to cart to checkout to a webhook-verified paid order", async ({ pag
 
   await page.getByRole("button", { name: "Pay with PayPal" }).click();
   await expect(page).toHaveURL(/fake-paypal-approval/);
-  await page.getByRole("link", { name: "Approve Payment (test)" }).click();
-  await expect(page).toHaveURL(/checkout\/return/);
-  await expect(page.getByRole("heading", { name: "Thank you for your order!" })).toBeVisible();
-
-  const paypalOrderId = new URL(page.url()).searchParams.get("token");
+  // The real PayPal order id, captured from the fake approval screen's
+  // own URL — checkout/return no longer surfaces it once feature 4
+  // makes it redirect straight through to the confirmation page.
+  const paypalOrderId = new URL(page.url()).searchParams.get("orderId");
   expect(paypalOrderId).toBeTruthy();
+
+  await page.getByRole("link", { name: "Approve Payment (test)" }).click();
+  // checkout/return resolves the PayPal-side token back to our own
+  // order and hands off to the real confirmation page (feature 4,
+  // FR-001) — it renders nothing of its own on the happy path.
+  await expect(page).toHaveURL(/\/orders\//);
+  await expect(page.getByRole("heading", { name: "Thank you for your order!" })).toBeVisible();
+  await expect(page.getByText(/Confirming your payment/i)).toBeVisible();
+  const confirmationUrl = page.url();
 
   // The order is placed but not yet paid — only a verified webhook can
   // do that (FR-012). Simulate PayPal's async webhook arriving,
@@ -130,8 +138,9 @@ test("browse to cart to checkout to a webhook-verified paid order", async ({ pag
   const webhookResponse = await request.post("/api/webhooks/paypal", { data: webhookBody });
   expect(webhookResponse.ok()).toBe(true);
 
-  await page.goto(`/checkout/return?token=${paypalOrderId}`);
-  await expect(page.getByRole("heading", { name: "Payment confirmed!" })).toBeVisible();
+  await page.goto(confirmationUrl);
+  await expect(page.getByText(/Confirming your payment/i)).toHaveCount(0);
+  await expect(page.locator('li[data-reached="true"]', { hasText: "Paid" })).toBeVisible();
 
   // Idempotency: a repeated webhook delivery for an already-paid order
   // is a no-op, not an error (FR-015).
