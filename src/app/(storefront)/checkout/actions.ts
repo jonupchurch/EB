@@ -18,13 +18,18 @@ import {
 import { checkCheckoutRateLimit } from "@/lib/checkout/rate-limit";
 import { getSalesTax } from "@/lib/checkout/tax";
 import { getShippingRate } from "@/lib/checkout/shipping";
+import { US_STATE_CODES } from "@/lib/us-states";
 
 const shippingAddressSchema = z.object({
   name: z.string().min(1, "Name is required"),
   street1: z.string().min(1, "Street address is required"),
   street2: z.string().optional(),
   city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
+  // TaxJar/Shippo both require the standard 2-letter USPS code, not a
+  // full state name — rejecting an invalid one here (with a clear
+  // field error) beats letting it reach either provider and 500 with
+  // an opaque error, as a full name like "Ohio" did in production.
+  state: z.enum(US_STATE_CODES, { message: "Select a valid state" }),
   zip: z.string().min(1, "ZIP code is required"),
   country: z.string().min(1, "Country is required"),
 });

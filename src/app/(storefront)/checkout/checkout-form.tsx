@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createOrderAndPayment, getCheckoutSummary, type CheckoutBreakdown } from "./actions";
+import { US_STATES } from "@/lib/us-states";
 
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
@@ -169,12 +170,19 @@ export function CheckoutForm() {
             <label className="block text-sm font-medium text-ink" htmlFor="state">
               State
             </label>
-            <input
+            <select
               id="state"
               value={form.state}
               onChange={(e) => updateField("state", e.target.value)}
               className="mt-1 w-full rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
-            />
+            >
+              <option value="">Select…</option>
+              {US_STATES.map((state) => (
+                <option key={state.code} value={state.code}>
+                  {state.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-ink" htmlFor="zip">

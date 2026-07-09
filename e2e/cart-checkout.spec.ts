@@ -94,7 +94,7 @@ test("browse to cart to checkout to a webhook-verified paid order", async ({ pag
   await page.getByLabel("Full name").fill("Jane Buyer");
   await page.getByLabel("Street address").fill("123 Main St");
   await page.getByLabel("City").fill("Cleveland");
-  await page.getByLabel("State").fill("OH");
+  await page.getByLabel("State").selectOption("OH");
   await page.getByLabel("ZIP").fill("44101");
   await page.getByLabel(/Calculated/).check();
   await page.getByLabel("Promo code").fill(promoCode);
@@ -184,7 +184,7 @@ test("an invalid promo code is rejected with a specific reason, total unaffected
   await page.getByLabel("Full name").fill("Jane Buyer");
   await page.getByLabel("Street address").fill("123 Main St");
   await page.getByLabel("City").fill("Cleveland");
-  await page.getByLabel("State").fill("OH");
+  await page.getByLabel("State").selectOption("OH");
   await page.getByLabel("ZIP").fill("44101");
   await page.getByLabel("Promo code").fill("THIS-CODE-DOES-NOT-EXIST");
   await page.getByRole("button", { name: "Review order" }).click();

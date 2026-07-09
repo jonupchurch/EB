@@ -46,7 +46,7 @@ async function checkoutToConfirmation(
   await page.getByLabel("Full name").fill("Jane Buyer");
   await page.getByLabel("Street address").fill("123 Main St");
   await page.getByLabel("City").fill("Cleveland");
-  await page.getByLabel("State").fill("OH");
+  await page.getByLabel("State").selectOption("OH");
   await page.getByLabel("ZIP").fill("44101");
   await page.getByRole("button", { name: "Review order" }).click();
   await expect(page.getByRole("button", { name: "Pay with PayPal" })).toBeVisible();
