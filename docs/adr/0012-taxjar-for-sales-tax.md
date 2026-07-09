@@ -38,3 +38,11 @@ reachable. A real `TAXJAR_API_KEY` (sandbox, then live) is required for
 any live/manual verification of this piece. If tax obligations ever
 expand beyond Ohio in a way TaxJar can't cover, or pricing/fit changes,
 the switch is contained to this one module.
+
+**Update, 2026-07-09:** the first live checkout attempt in Production
+500'd with `TaxjarError: Unauthorized` — a sandbox `TAXJAR_API_KEY` is
+only valid against TaxJar's sandbox API URL, and `tax.ts` was always
+calling the default (production) one. Added `TAXJAR_MODE=sandbox|live`
+(default sandbox), mirroring `PAYPAL_MODE` exactly: never inferred from
+`NODE_ENV`, so pointing at TaxJar's real production API requires a
+deliberate flip once a real (non-sandbox) key is in place.

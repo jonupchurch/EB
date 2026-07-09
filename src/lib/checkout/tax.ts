@@ -41,7 +41,14 @@ async function getRealSalesTax(
   }
 
   const origin = getShopOriginAddress();
-  const client = new Taxjar({ apiKey });
+  // A sandbox key is only valid against TaxJar's sandbox API URL — the
+  // default (production) URL rejects it as unauthorized. Mirrors
+  // PAYPAL_MODE: never inferred from NODE_ENV, so going live requires a
+  // deliberate flip, not an accidental one.
+  const client =
+    process.env.TAXJAR_MODE === "live"
+      ? new Taxjar({ apiKey })
+      : new Taxjar({ apiKey, apiUrl: Taxjar.SANDBOX_API_URL });
 
   const result = await client.taxForOrder({
     from_country: origin.country,
