@@ -20,6 +20,7 @@ etc.).
 | Largest Contentful Paint (product/catalog pages) | < 2.5s (Core Web Vitals "Good" threshold) |
 | Checkout step transition | < 1.5s, including one live tax or shipping-rate API call |
 | Interaction responsiveness | no blocking main-thread work > 50ms |
+| AI product-description generate/improve (feature 8) | A few seconds per request — no streaming UI needed at this scale (`specs/008-ai-product-descriptions/plan.md`) |
 
 ## Cost
 
@@ -28,6 +29,12 @@ etc.).
   log usage/cost per request the same way any other paid dependency is
   metered, same discipline as an AI-assisted feature would need if one
   is ever added.
+- Feature 8's AI description generate/improve calls are metered the
+  same way: routed through the Vercel AI Gateway (zero markup over
+  provider list price, a free monthly credit allowance per team before
+  pay-as-you-go), gated behind the existing admin rate limiter rather
+  than a dedicated AI-specific limit at this business's scale (two
+  known admins, a modest catalog) — see ADR-0018.
 
 ## Limits & abuse
 

@@ -14,13 +14,14 @@ import {
   sizeOptions,
   stylingOptions,
 } from "@/db/schema";
+import { suggestProductDescription } from "@/lib/admin/description-writer";
 import { checkAdminRateLimit } from "@/lib/admin/rate-limit";
 import { deleteProductImage, uploadProductImage } from "@/lib/admin/product-images";
-import { productSchema, type ProductInput } from "@/lib/admin/schemas";
+import { descriptionRequestSchema, productSchema, type ProductInput } from "@/lib/admin/schemas";
 
 type ActionError = {
   ok: false;
-  error: "not_authorized" | "not_found" | "validation_error";
+  error: "not_authorized" | "not_found" | "validation_error" | "generation_failed";
   fieldErrors?: Record<string, string>;
 };
 
@@ -229,6 +230,32 @@ export async function getProduct(id: number) {
 }
 
 // --- Products: mutations ---
+
+// Feature 8: powers both the Product Editor's "Generate" (no
+// currentDescription) and "Improve" (currentDescription present)
+// buttons — see contracts/actions.md's "one Server Action" decision.
+// Never writes to the products table itself; the returned draft only
+// becomes real once the admin saves it through createProduct/
+// updateProduct below, unchanged (FR-003).
+export async function suggestDescription(
+  input: unknown,
+): Promise<ActionResult<{ description: string }>> {
+  const session = await requireAdminSession();
+  if (!session) return NOT_AUTHORIZED;
+  checkAdminRateLimit();
+
+  const parsed = descriptionRequestSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "validation_error", fieldErrors: flattenZodErrors(parsed.error) };
+  }
+
+  try {
+    const result = await suggestProductDescription(parsed.data);
+    return { ok: true, data: result };
+  } catch {
+    return { ok: false, error: "generation_failed" };
+  }
+}
 
 export async function createProduct(input: unknown): Promise<ActionResult<{ id: number }>> {
   const session = await requireAdminSession();

@@ -1008,3 +1008,60 @@ the product and its architecture evolved.
   pre-existing promotion type (flat, BOGO, promo-code flat, cart
   threshold, free shipping) computes identically to before this
   feature.
+
+## 2026-07-14 — Feature 8: AI product description writer/editor implemented
+
+- `feat: AI product description writer/editor (feature 8)` — a third
+  post-MVP feature, run through the full `/speckit-specify` →
+  `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` cycle
+  (`specs/008-ai-product-descriptions/`). This project's first AI/LLM
+  integration — the constitution's Principle II already required "a
+  small swappable provider interface, with Zod-validated output before
+  use" for any future AI feature; this is the first feature to actually
+  exercise that clause. Adds "Generate" (blank description → first
+  draft) and "Improve" (existing description → polished alternative)
+  to the admin Product Editor, both calling one Server Action
+  (`suggestDescription`) that sends the product's current, possibly-
+  unsaved form data (name, category, styling/material labels, price,
+  current description) to **Claude Haiku 4.5** through the **Vercel AI
+  Gateway** ([ADR-0018](docs/adr/0018-vercel-ai-gateway-for-product-descriptions.md))
+  — chosen specifically for cost, confirmed directly with Jon, since
+  short structured-copy generation doesn't need a larger model's
+  reasoning depth. No new provider credential anywhere in this
+  project's env files: the Gateway authenticates via OIDC
+  (`VERCEL_OIDC_TOKEN`, already provisioned from `vercel link`); the
+  exact Gateway model slug (`anthropic/claude-haiku-4.5`) was confirmed
+  via `gateway.getAvailableModels()` rather than guessed, since Gateway
+  slugs use dots for version numbers, not the raw Anthropic API's
+  hyphenated model ID. Output is retrieved via the AI SDK's
+  `generateText` with a Zod-schema `output` spec (`generateObject` is
+  now deprecated in `ai@6` in favor of this) — validation is enforced
+  by the SDK call itself, not a separate step afterward. Reuses the
+  existing `CHECKOUT_FAKE_PROVIDERS` flag for a deterministic fake
+  (a template built from the real input fields, so tests actually prove
+  real product data reaches the function) — no real model call in any
+  automated test, matching this project's established provider/fake-
+  provider pattern exactly. The feature never touches the `products`
+  table itself: a suggested draft only ever lands in the Product
+  Editor's existing local `description` state, becoming real only
+  through the pre-existing `createProduct`/`updateProduct` save
+  actions — "never auto-published" is true by construction, not an
+  extra check. New Vitest coverage (`tests/admin/description-writer.test.ts`,
+  5 tests) covers the fake path's generate/improve modes actually
+  reflecting the given product fields, and the schema's required-name
+  guard (80 tests total, up from 75). `e2e/admin-products.spec.ts`
+  gained three scenarios: Generate → edit → save persists the edited
+  (not raw AI) text; Improve → discard leaves the original description
+  untouched; and requesting another attempt replaces the prior draft
+  rather than stacking (25 e2e tests total, up from 22). While running
+  the full e2e suite, hit a real but unrelated flake in feature 7's
+  `admin-discounts.spec.ts`: its automatic-percentage-promotion test
+  asserted on a `90% off` row without accounting for same-text debris
+  left active by earlier runs (an intentional part of that test's own
+  design), which had accumulated into a genuine strict-mode ambiguity —
+  fixed by scoping the assertion to `.first()` (the list's own
+  newest-first ordering makes this the row just created). An ad hoc axe
+  scan of the Product Editor with both the blank-description
+  ("Generate") and non-blank ("Improve") states found zero violations.
+  Full check suite (`typecheck`/`lint`/`test` — 80 tests/`test:e2e` —
+  25 tests) passes.

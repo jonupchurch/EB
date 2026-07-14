@@ -11,6 +11,7 @@ import {
   addProductImage,
   removeProductImage,
   reorderProductImages,
+  suggestDescription,
   type ActionResult,
 } from "./actions";
 
@@ -206,6 +207,9 @@ export function ProductEditor({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
+  const [aiPending, setAiPending] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
   // A representative example combination — one row per single-select
   // category (the first) plus every design-location row — used only
   // to give the admin a live sanity-check total while entering prices.
@@ -221,6 +225,44 @@ export function ProductEditor({
     .filter((o): o is NonNullable<typeof o> => !!o)
     .map((o) => ({ priceAdjustmentCents: o.priceAdjustmentCents }));
   const previewTotalCents = calculateTotalCents(basePriceCents, previewOptions);
+
+  // Feature 8: "Generate" (currentDescription omitted) and "Improve"
+  // (currentDescription passed) are both this one call — context always
+  // reflects the form's current, possibly-unsaved values (research.md),
+  // never a re-fetch from the database. The returned draft only ever
+  // replaces the same local `description` state the textarea controls;
+  // it's the existing Save action below that actually persists it.
+  async function handleSuggestDescription(currentDescription?: string) {
+    setAiPending(true);
+    setAiError(null);
+    try {
+      const result = await suggestDescription({
+        name,
+        categoryName: categories.find((c) => c.id === categoryId)?.name,
+        stylingLabels: stylingOptions
+          .map((o) => stylingCatalog.find((c) => c.id === o.stylingCatalogId)?.label)
+          .filter((label): label is string => !!label),
+        materialLabels: materialOptions
+          .map((o) => materialCatalog.find((c) => c.id === o.materialCatalogId)?.description)
+          .filter((label): label is string => !!label),
+        basePriceCents,
+        currentDescription,
+      });
+      if (result.ok) {
+        setDescription(result.data.description);
+      } else {
+        setAiError(
+          result.fieldErrors?.name ?? "Could not generate a description right now — please try again.",
+        );
+      }
+    } catch (error) {
+      setAiError(
+        error instanceof Error ? error.message : "Could not generate a description right now — please try again.",
+      );
+    } finally {
+      setAiPending(false);
+    }
+  }
 
   async function handleAddCategory() {
     const trimmed = newCategoryName.trim();
@@ -489,9 +531,33 @@ export function ProductEditor({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-ink" htmlFor="description">
-            Description
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-ink" htmlFor="description">
+              Description
+            </label>
+            <div className="flex gap-3">
+              {!description.trim() && (
+                <button
+                  type="button"
+                  onClick={() => handleSuggestDescription(undefined)}
+                  disabled={aiPending || !name.trim()}
+                  className="text-sm font-medium text-teal disabled:opacity-50"
+                >
+                  {aiPending ? "Generating…" : "Generate"}
+                </button>
+              )}
+              {description.trim() && (
+                <button
+                  type="button"
+                  onClick={() => handleSuggestDescription(description)}
+                  disabled={aiPending}
+                  className="text-sm font-medium text-teal disabled:opacity-50"
+                >
+                  {aiPending ? "Improving…" : "Improve"}
+                </button>
+              )}
+            </div>
+          </div>
           <textarea
             id="description"
             value={description}
@@ -499,6 +565,7 @@ export function ProductEditor({
             className="mt-1 w-full rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
             rows={3}
           />
+          {aiError && <p className="mt-1 text-sm text-red-700">{aiError}</p>}
         </div>
 
         <div>

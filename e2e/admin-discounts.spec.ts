@@ -145,7 +145,12 @@ test("an automatic (codeless) percentage promotion applies with no code entered 
   await page.getByLabel("Discount value").selectOption("percentage");
   await page.getByLabel("Percentage off (1–100)").fill(String(percent));
   await page.getByRole("button", { name: "Create discount" }).click();
-  await expect(page.locator("tr", { hasText: `${percent}% off` })).toBeVisible();
+  // .first(): unlike a promo code, an automatic promotion applies with
+  // no code needed — earlier runs' still-active rows (deliberately left
+  // active so this test can exercise a real automatic-promotion match)
+  // can accumulate the same "90% off" text, so this only asserts
+  // creation succeeded, not uniqueness.
+  await expect(page.locator("tr", { hasText: `${percent}% off` }).first()).toBeVisible();
 
   const productName = `E2E Automatic Percent Product ${Date.now()}`;
   await page.goto("/admin/products/new");

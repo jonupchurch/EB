@@ -103,3 +103,20 @@ export const promotionInputSchema = z.object({
 });
 
 export type PromotionInput = z.infer<typeof promotionInputSchema>;
+
+// --- AI product description writer/editor (feature 8) ---
+// `name` is required (FR-011: decline to generate for a product with no
+// name yet); every other field is optional context. All fields reflect
+// the Product Editor's current, possibly-unsaved form state — never a
+// database lookup (data-model.md).
+
+export const descriptionRequestSchema = z.object({
+  name: z.string().trim().min(1, "A product name is required"),
+  categoryName: z.string().optional(),
+  stylingLabels: z.array(z.string()).optional(),
+  materialLabels: z.array(z.string()).optional(),
+  basePriceCents: z.number().int().min(0).optional(),
+  currentDescription: z.string().optional(),
+});
+
+export type DescriptionRequest = z.infer<typeof descriptionRequestSchema>;
