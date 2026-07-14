@@ -7,12 +7,13 @@ import {
   deletePromotionRow,
   updatePromotionRow,
 } from "../../src/lib/admin/promotion-crud";
-import type { PromotionInput } from "../../src/lib/admin/schemas";
+import { promotionInputSchema, type PromotionInput } from "../../src/lib/admin/schemas";
 
 function promoInput(overrides: Partial<PromotionInput> = {}): PromotionInput {
   return {
     type: "flat",
     active: true,
+    valueMode: "flat",
     discountAmountCents: 500,
     ...overrides,
   };
@@ -83,6 +84,54 @@ describe("promotion CRUD", () => {
     }
   });
 
+  it("requires discountPercent (not discountAmountCents) when valueMode is percentage (FR-003)", async () => {
+    const result = await createPromotionRow(
+      promoInput({ type: "flat", valueMode: "percentage", discountAmountCents: undefined, discountPercent: undefined }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok && result.error === "validation_error") {
+      expect(result.fieldErrors.discountPercent).toBeTruthy();
+    } else {
+      throw new Error("expected a validation_error");
+    }
+  });
+
+  it("a percentage promo code requires both a code and a percentage (FR-002, FR-003)", async () => {
+    const result = await createPromotionRow(
+      promoInput({
+        type: "promo_code",
+        valueMode: "percentage",
+        promoCode: undefined,
+        discountAmountCents: undefined,
+        discountPercent: undefined,
+      }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok && result.error === "validation_error") {
+      expect(result.fieldErrors.promoCode).toBeTruthy();
+      expect(result.fieldErrors.discountPercent).toBeTruthy();
+    } else {
+      throw new Error("expected a validation_error");
+    }
+  });
+
+  it("cart_threshold ignores valueMode entirely and still requires a flat discount amount (FR-014)", async () => {
+    const result = await createPromotionRow(
+      promoInput({
+        type: "cart_threshold",
+        valueMode: "percentage",
+        thresholdCents: 4000,
+        discountAmountCents: undefined,
+      }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok && result.error === "validation_error") {
+      expect(result.fieldErrors.discountAmountCents).toBeTruthy();
+    } else {
+      throw new Error("expected a validation_error");
+    }
+  });
+
   it("deactivating, then deleting, a promotion already applied to a real order leaves that order's recorded discount unchanged both times (FR-009)", async () => {
     const created = await createPromotionRow(promoInput({ discountAmountCents: 500 }));
     expect(created.ok).toBe(true);
@@ -110,5 +159,27 @@ describe("promotion CRUD", () => {
     const afterDelete = await db.query.orders.findFirst({ where: (o, { eq }) => eq(o.id, order.id) });
     expect(afterDelete?.discountCents).toBe(500);
     expect(afterDelete?.promotionId).toBeNull();
+  });
+});
+
+describe("promotionInputSchema — percentage range validation (FR-003)", () => {
+  it("accepts the boundary values 1 and 100", () => {
+    expect(
+      promotionInputSchema.safeParse({ type: "flat", valueMode: "percentage", discountPercent: 1, active: true })
+        .success,
+    ).toBe(true);
+    expect(
+      promotionInputSchema.safeParse({ type: "flat", valueMode: "percentage", discountPercent: 100, active: true })
+        .success,
+    ).toBe(true);
+  });
+
+  it("rejects 0, a negative value, and a value over 100", () => {
+    for (const discountPercent of [0, -5, 101]) {
+      expect(
+        promotionInputSchema.safeParse({ type: "flat", valueMode: "percentage", discountPercent, active: true })
+          .success,
+      ).toBe(false);
+    }
   });
 });

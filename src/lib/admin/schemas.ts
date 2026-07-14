@@ -93,6 +93,10 @@ export const promotionInputSchema = z.object({
   promoCode: z.string().trim().min(1).optional(),
   discountAmountCents: z.number().int().min(0).optional(),
   thresholdCents: z.number().int().min(0).optional(),
+  // Feature 7: orthogonal to `type` — only consulted for "flat"/"promo_code".
+  valueMode: z.enum(["flat", "percentage"]).default("flat"),
+  discountPercent: z.number().int().min(1).max(100).optional(),
+  maxDiscountCents: z.number().int().min(0).optional(),
   active: z.boolean().default(true),
   startsAt: z.coerce.date().optional(),
   endsAt: z.coerce.date().optional(),

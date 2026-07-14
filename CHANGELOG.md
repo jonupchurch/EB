@@ -953,3 +953,58 @@ the product and its architecture evolved.
   with the correct `callbackUrl`. The auto-deploy miss itself is
   unresolved — flagged in `status.md`'s Next steps to check the
   GitHub App connection if it recurs.
+
+## 2026-07-14 — Feature 7: Percentage-off discounts implemented
+
+- `feat: percentage-off discounts (feature 7)` — a second post-MVP
+  feature, run through the full `/speckit-specify` →
+  `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` cycle
+  (`specs/007-percentage-discounts/`). Adds a percentage-of-subtotal
+  discount calculation to the existing promotion system (feature 5),
+  usable both as a standalone automatic (codeless) promotion and as
+  the mechanic behind a promo code, with an optional per-promotion
+  maximum-discount cap. Implemented as a new orthogonal `valueMode`
+  (`flat` | `percentage`) column plus `discountPercent`/
+  `maxDiscountCents` on the existing `promotions` table, rather than
+  new `promotion_type` enum values — this is the first schema change
+  in the project against a table with real Production rows (every
+  earlier cross-feature amendment landed before its target table was
+  implemented), so the migration was deliberately additive-only (a new
+  enum type plus nullable/defaulted columns, no `ALTER TYPE` on the
+  existing `promotion_type` enum) — every existing promotion row reads
+  `value_mode = 'flat'` via the column default, with zero change to
+  its calculated behavior. `calculateDiscount()`'s `flat`/`promo_code`
+  branches now compute either a stored flat amount or
+  `Math.round(subtotal * percent / 100)` clamped to the optional cap
+  then to the subtotal — `cart_threshold` deliberately stays
+  flat-amount-only, ignoring `valueMode` entirely. The automatic-
+  promotion best-value comparison (previously inline inside
+  `resolveApplicablePromotion`) was extracted into a pure
+  `pickBestPromotion` function so it could be unit-tested without
+  touching the database — the DB-backed version of that test was
+  genuinely flaky the first time it ran, because it queried every
+  active automatic promotion in the whole table and collided with a
+  90%-off automatic promotion an e2e test run had just created and
+  left active; the pure extraction fixed the flakiness at its root
+  rather than papering over it with cleanup ordering. The admin
+  discounts form gained a Flat/Percentage toggle (shown only for the
+  `flat`/`promo_code` types), a 1–100 percentage input, and an
+  optional "limit the maximum discount" checkbox that only sends a cap
+  when explicitly checked — a blank/unchecked cap is never coerced to
+  a stray `0`, which would otherwise cap every percentage discount at
+  nothing. New Vitest coverage: percentage rounding, cap enforcement,
+  the 100%-off edge case, an uncapped promotion at any subtotal size,
+  `cart_threshold` correctly ignoring `valueMode`, 1–100 range
+  validation, and `pickBestPromotion` correctly weighing a percentage
+  promotion against a flat one at different subtotals (all in
+  `tests/checkout/promotions.test.ts`/`tests/admin/promotions.test.ts`,
+  75 tests total, up from 61). `e2e/admin-discounts.spec.ts` gained two
+  scenarios: a capped percentage promo code applied at real checkout,
+  and an automatic percentage promotion applying with no code entered
+  (22 e2e tests total, up from 20). An ad hoc axe scan of the admin
+  discounts form with every new field expanded found zero violations.
+  Full check suite (`typecheck`/`lint`/`test` — 75 tests/`test:e2e` —
+  22 tests) passes, including a full regression pass confirming every
+  pre-existing promotion type (flat, BOGO, promo-code flat, cart
+  threshold, free shipping) computes identically to before this
+  feature.

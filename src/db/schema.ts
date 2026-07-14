@@ -300,6 +300,13 @@ export const promotionTypeEnum = pgEnum("promotion_type", [
   "free_shipping",
 ]);
 
+// Feature 7 (percentage-off discounts): orthogonal to `type` — "what
+// mechanic triggers this promotion" (flat/bogo/promo_code/cart_threshold/
+// free_shipping) vs. "how is the discount amount computed" (flat/
+// percentage). Only meaningful for the `flat` and `promo_code` types; see
+// specs/007-percentage-discounts/data-model.md.
+export const promotionValueModeEnum = pgEnum("promotion_value_mode", ["flat", "percentage"]);
+
 export const orderStatusEnum = pgEnum("order_status", [
   "placed",
   "paid",
@@ -317,6 +324,9 @@ export const promotions = pgTable(
     promoCode: text("promo_code"),
     discountAmountCents: integer("discount_amount_cents"),
     thresholdCents: integer("threshold_cents"),
+    valueMode: promotionValueModeEnum("value_mode").notNull().default("flat"),
+    discountPercent: integer("discount_percent"),
+    maxDiscountCents: integer("max_discount_cents"),
     active: boolean("active").notNull().default(true),
     startsAt: timestamp("starts_at", { withTimezone: true }),
     endsAt: timestamp("ends_at", { withTimezone: true }),

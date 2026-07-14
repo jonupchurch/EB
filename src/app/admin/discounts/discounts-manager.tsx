@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { PriceInput } from "@/components/price-input";
 import type { PromotionListItem } from "@/lib/admin/promotion-crud";
-import type { PromotionType } from "@/lib/checkout/promotions";
+import type { PromotionType, PromotionValueMode } from "@/lib/checkout/promotions";
 import { createPromotion, deletePromotion, listPromotions, updatePromotion } from "./actions";
 
 const TYPE_LABELS: Record<PromotionType, string> = {
@@ -20,11 +20,24 @@ function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+// A "flat"/"promo_code" promotion's value, honoring valueMode (feature 7)
+// — distinct rendering for a percentage rate (and its optional cap) vs.
+// a flat dollar amount (FR-013).
+function describeFlatOrPercentageValue(promotion: PromotionListItem): string {
+  if (promotion.valueMode === "percentage") {
+    if (promotion.discountPercent === null) return "—";
+    const capSuffix =
+      promotion.maxDiscountCents !== null ? ` (up to ${formatPrice(promotion.maxDiscountCents)})` : "";
+    return `${promotion.discountPercent}% off${capSuffix}`;
+  }
+  return promotion.discountAmountCents !== null ? `${formatPrice(promotion.discountAmountCents)} off` : "—";
+}
+
 function describeValue(promotion: PromotionListItem): string {
   switch (promotion.type) {
     case "flat":
     case "promo_code":
-      return promotion.discountAmountCents !== null ? `${formatPrice(promotion.discountAmountCents)} off` : "—";
+      return describeFlatOrPercentageValue(promotion);
     case "cart_threshold":
       return promotion.discountAmountCents !== null && promotion.thresholdCents !== null
         ? `${formatPrice(promotion.discountAmountCents)} off over ${formatPrice(promotion.thresholdCents)}`
@@ -45,7 +58,11 @@ interface FormState {
   id: number | null;
   type: PromotionType;
   promoCode: string;
+  valueMode: PromotionValueMode;
   discountAmountCents: number;
+  discountPercent: number;
+  hasMaxDiscount: boolean;
+  maxDiscountCents: number;
   thresholdCents: number;
   active: boolean;
   startsAt: string;
@@ -56,12 +73,22 @@ const emptyForm: FormState = {
   id: null,
   type: "flat",
   promoCode: "",
+  valueMode: "flat",
   discountAmountCents: 0,
+  discountPercent: 0,
+  hasMaxDiscount: false,
+  maxDiscountCents: 0,
   thresholdCents: 0,
   active: true,
   startsAt: "",
   endsAt: "",
 };
+
+// True for the two types whose discount value can be flat or percentage
+// (feature 7); cart_threshold stays flat-amount-only (FR-014).
+function supportsValueMode(type: PromotionType): boolean {
+  return type === "flat" || type === "promo_code";
+}
 
 export function DiscountsManager({ initial }: { initial: PromotionListItem[] }) {
   const [promotions, setPromotions] = useState(initial);
@@ -74,7 +101,11 @@ export function DiscountsManager({ initial }: { initial: PromotionListItem[] }) 
       id: promotion.id,
       type: promotion.type,
       promoCode: promotion.promoCode ?? "",
+      valueMode: promotion.valueMode,
       discountAmountCents: promotion.discountAmountCents ?? 0,
+      discountPercent: promotion.discountPercent ?? 0,
+      hasMaxDiscount: promotion.maxDiscountCents !== null,
+      maxDiscountCents: promotion.maxDiscountCents ?? 0,
       thresholdCents: promotion.thresholdCents ?? 0,
       active: promotion.active,
       startsAt: toDateInputValue(promotion.startsAt),
@@ -84,13 +115,21 @@ export function DiscountsManager({ initial }: { initial: PromotionListItem[] }) 
   }
 
   function buildInput() {
+    const isPercentage = supportsValueMode(form.type) && form.valueMode === "percentage";
     return {
       type: form.type,
       promoCode: form.type === "promo_code" ? form.promoCode.trim() || undefined : undefined,
+      valueMode: supportsValueMode(form.type) ? form.valueMode : "flat",
       discountAmountCents:
-        form.type === "flat" || form.type === "promo_code" || form.type === "cart_threshold"
+        !isPercentage &&
+        (form.type === "flat" || form.type === "promo_code" || form.type === "cart_threshold")
           ? form.discountAmountCents
           : undefined,
+      discountPercent: isPercentage ? form.discountPercent : undefined,
+      // A blank cap means "uncapped" — only sent when the admin has
+      // explicitly opted into a maximum (never a stray 0, which would
+      // cap every discount at nothing).
+      maxDiscountCents: isPercentage && form.hasMaxDiscount ? form.maxDiscountCents : undefined,
       thresholdCents:
         form.type === "cart_threshold" || form.type === "promo_code" ? form.thresholdCents : undefined,
       active: form.active,
@@ -238,7 +277,26 @@ export function DiscountsManager({ initial }: { initial: PromotionListItem[] }) 
           </div>
         )}
 
-        {(form.type === "flat" || form.type === "promo_code" || form.type === "cart_threshold") && (
+        {supportsValueMode(form.type) && (
+          <div>
+            <label className="block text-sm font-medium text-ink" htmlFor="valueMode">
+              Discount value
+            </label>
+            <select
+              id="valueMode"
+              value={form.valueMode}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, valueMode: e.target.value as PromotionValueMode }))
+              }
+              className="mt-1 w-full rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
+            >
+              <option value="flat">Flat amount</option>
+              <option value="percentage">Percentage</option>
+            </select>
+          </div>
+        )}
+
+        {form.type === "cart_threshold" || (supportsValueMode(form.type) && form.valueMode === "flat") ? (
           <div>
             <label className="block text-sm font-medium text-ink" htmlFor="discountAmountCents">
               Discount amount (USD)
@@ -253,6 +311,57 @@ export function DiscountsManager({ initial }: { initial: PromotionListItem[] }) 
               <p className="mt-1 text-sm text-red-700">{fieldErrors.discountAmountCents}</p>
             )}
           </div>
+        ) : null}
+
+        {supportsValueMode(form.type) && form.valueMode === "percentage" && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-ink" htmlFor="discountPercent">
+                Percentage off (1–100)
+              </label>
+              <input
+                id="discountPercent"
+                type="number"
+                min={1}
+                max={100}
+                value={form.discountPercent}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, discountPercent: Number(e.target.value) }))
+                }
+                className="mt-1 w-full rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
+              />
+              {fieldErrors.discountPercent && (
+                <p className="mt-1 text-sm text-red-700">{fieldErrors.discountPercent}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={form.hasMaxDiscount}
+                  onChange={(e) => setForm((prev) => ({ ...prev, hasMaxDiscount: e.target.checked }))}
+                />
+                Limit the maximum discount (optional)
+              </label>
+              {form.hasMaxDiscount && (
+                <>
+                  <label className="sr-only" htmlFor="maxDiscountCents">
+                    Maximum discount (USD)
+                  </label>
+                  <PriceInput
+                    id="maxDiscountCents"
+                    valueCents={form.maxDiscountCents}
+                    onChangeCents={(cents) => setForm((prev) => ({ ...prev, maxDiscountCents: cents }))}
+                    className="mt-1 w-full rounded border border-cream-deeper bg-white px-3 py-2 text-ink"
+                  />
+                  {fieldErrors.maxDiscountCents && (
+                    <p className="mt-1 text-sm text-red-700">{fieldErrors.maxDiscountCents}</p>
+                  )}
+                </>
+              )}
+            </div>
+          </>
         )}
 
         {(form.type === "cart_threshold" || form.type === "promo_code") && (

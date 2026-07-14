@@ -10,12 +10,19 @@ import { promotions } from "@/db/schema";
 
 export type PromotionType = "flat" | "bogo" | "promo_code" | "cart_threshold" | "free_shipping";
 
+// Feature 7: orthogonal to `type` — only meaningful for "flat"/"promo_code",
+// which have a computed dollar value; every other type ignores this.
+export type PromotionValueMode = "flat" | "percentage";
+
 export interface PromotionRecord {
   id: number;
   type: PromotionType;
   promoCode: string | null;
   discountAmountCents: number | null;
   thresholdCents: number | null;
+  valueMode: PromotionValueMode;
+  discountPercent: number | null;
+  maxDiscountCents: number | null;
   active: boolean;
   startsAt: Date | null;
   endsAt: Date | null;
@@ -48,6 +55,23 @@ export function isWithinWindow(promotion: PromotionRecord, now: Date): boolean {
 }
 
 /**
+ * Pure: the dollar value of a "flat" or "promo_code" promotion, honoring
+ * `valueMode` — a stored flat cents amount, or a percentage of the
+ * subtotal (rounded to the nearest cent, then clamped to any configured
+ * `maxDiscountCents` cap). Always clamped to `subtotalCents` last, so a
+ * discount can never exceed the cart itself.
+ */
+function discountForFlatOrPercentage(promotion: PromotionRecord, subtotalCents: number): number {
+  if (promotion.valueMode === "percentage") {
+    const raw = Math.round((subtotalCents * (promotion.discountPercent ?? 0)) / 100);
+    const capped =
+      promotion.maxDiscountCents !== null ? Math.min(raw, promotion.maxDiscountCents) : raw;
+    return Math.min(capped, subtotalCents);
+  }
+  return Math.min(promotion.discountAmountCents ?? 0, subtotalCents);
+}
+
+/**
  * Pure: computes what `promotion` would discount for a given cart,
  * without deciding whether it's the one that ultimately applies.
  */
@@ -59,7 +83,7 @@ export function calculateDiscount(
   switch (promotion.type) {
     case "flat":
       return {
-        discountCents: Math.min(promotion.discountAmountCents ?? 0, subtotalCents),
+        discountCents: discountForFlatOrPercentage(promotion, subtotalCents),
         freeShipping: false,
         applicable: true,
       };
@@ -71,7 +95,7 @@ export function calculateDiscount(
         return { discountCents: 0, freeShipping: false, applicable: false };
       }
       return {
-        discountCents: Math.min(promotion.discountAmountCents ?? 0, subtotalCents),
+        discountCents: discountForFlatOrPercentage(promotion, subtotalCents),
         freeShipping: false,
         applicable: true,
       };
@@ -112,6 +136,9 @@ function toPromotionRecord(row: typeof promotions.$inferSelect): PromotionRecord
     promoCode: row.promoCode,
     discountAmountCents: row.discountAmountCents,
     thresholdCents: row.thresholdCents,
+    valueMode: row.valueMode,
+    discountPercent: row.discountPercent,
+    maxDiscountCents: row.maxDiscountCents,
     active: row.active,
     startsAt: row.startsAt,
     endsAt: row.endsAt,
@@ -165,6 +192,22 @@ export async function resolveApplicablePromotion(
   }
 
   const automatic = await getActiveAutomaticPromotions(new Date());
+  return pickBestPromotion(automatic, cartItems, subtotalCents, shippingCents);
+}
+
+/**
+ * Pure: given every currently-active, in-window automatic promotion,
+ * picks the single highest-value one for this cart — never stacked
+ * (FR-010). Extracted from `resolveApplicablePromotion` so this
+ * comparison (which must correctly weigh a percentage promotion against
+ * a flat one, FR-009) is unit-testable without touching the database.
+ */
+export function pickBestPromotion(
+  automatic: PromotionRecord[],
+  cartItems: CartItemForPromotion[],
+  subtotalCents: number,
+  shippingCents: number,
+): ApplicablePromotionResult {
   const candidates = automatic
     .map((promotion) => ({ promotion, ...calculateDiscount(promotion, cartItems, subtotalCents) }))
     .filter((c) => c.applicable && (c.discountCents > 0 || c.freeShipping));

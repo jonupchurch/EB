@@ -7,7 +7,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { promotions } from "@/db/schema";
-import type { PromotionType } from "@/lib/checkout/promotions";
+import type { PromotionType, PromotionValueMode } from "@/lib/checkout/promotions";
 import type { PromotionInput } from "./schemas";
 
 export interface PromotionListItem {
@@ -16,6 +16,9 @@ export interface PromotionListItem {
   promoCode: string | null;
   discountAmountCents: number | null;
   thresholdCents: number | null;
+  valueMode: PromotionValueMode;
+  discountPercent: number | null;
+  maxDiscountCents: number | null;
   active: boolean;
   startsAt: Date | null;
   endsAt: Date | null;
@@ -32,24 +35,30 @@ export async function listPromotionRows(): Promise<PromotionListItem[]> {
 }
 
 /**
- * Pure: which fields are actually required for `data.type`
- * (data-model.md's per-type rules — matches
- * src/lib/checkout/promotions.ts's real evaluation logic exactly, not
- * the wireframe's aspirational fields like a percentage discount or a
- * usage limit, neither of which this schema or checkout supports).
+ * Pure: which fields are actually required for `data.type` and
+ * `data.valueMode` (data-model.md's per-type rules — matches
+ * src/lib/checkout/promotions.ts's real evaluation logic exactly).
+ * `cart_threshold` deliberately stays flat-amount-only (FR-014) — it
+ * never consults `valueMode`.
  */
+function flatOrPercentageFieldError(data: PromotionInput): Record<string, string> | null {
+  if (data.valueMode === "percentage") {
+    return data.discountPercent === undefined
+      ? { discountPercent: "A percentage from 1 to 100 is required" }
+      : null;
+  }
+  return data.discountAmountCents === undefined
+    ? { discountAmountCents: "A discount amount is required" }
+    : null;
+}
+
 export function typeSpecificFieldError(data: PromotionInput): Record<string, string> | null {
   switch (data.type) {
     case "flat":
-      return data.discountAmountCents === undefined
-        ? { discountAmountCents: "A discount amount is required" }
-        : null;
+      return flatOrPercentageFieldError(data);
     case "promo_code": {
-      const errors: Record<string, string> = {};
+      const errors: Record<string, string> = { ...flatOrPercentageFieldError(data) };
       if (!data.promoCode) errors.promoCode = "A promo code is required";
-      if (data.discountAmountCents === undefined) {
-        errors.discountAmountCents = "A discount amount is required";
-      }
       return Object.keys(errors).length > 0 ? errors : null;
     }
     case "cart_threshold": {
@@ -86,6 +95,9 @@ export async function createPromotionRow(data: PromotionInput): Promise<Promotio
         promoCode: promoCodeForType(data),
         discountAmountCents: data.discountAmountCents ?? null,
         thresholdCents: data.thresholdCents ?? null,
+        valueMode: data.valueMode,
+        discountPercent: data.discountPercent ?? null,
+        maxDiscountCents: data.maxDiscountCents ?? null,
         active: data.active,
         startsAt: data.startsAt ?? null,
         endsAt: data.endsAt ?? null,
@@ -116,6 +128,9 @@ export async function updatePromotionRow(
         promoCode: promoCodeForType(data),
         discountAmountCents: data.discountAmountCents ?? null,
         thresholdCents: data.thresholdCents ?? null,
+        valueMode: data.valueMode,
+        discountPercent: data.discountPercent ?? null,
+        maxDiscountCents: data.maxDiscountCents ?? null,
         active: data.active,
         startsAt: data.startsAt ?? null,
         endsAt: data.endsAt ?? null,

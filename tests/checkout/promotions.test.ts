@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
+import { afterEach, describe, expect, it } from "vitest";
+import { db } from "../../src/db";
+import { promotions } from "../../src/db/schema";
 import {
   calculateDiscount,
   isWithinWindow,
+  pickBestPromotion,
+  validatePromoCode,
   type CartItemForPromotion,
   type PromotionRecord,
 } from "../../src/lib/checkout/promotions";
@@ -13,6 +18,9 @@ function makePromotion(overrides: Partial<PromotionRecord> = {}): PromotionRecor
     promoCode: null,
     discountAmountCents: null,
     thresholdCents: null,
+    valueMode: "flat",
+    discountPercent: null,
+    maxDiscountCents: null,
     active: true,
     startsAt: null,
     endsAt: null,
@@ -97,6 +105,124 @@ describe("calculateDiscount", () => {
       freeShipping: true,
       applicable: true,
     });
+  });
+
+  describe("percentage valueMode (feature 7)", () => {
+    it("flat-type: discounts the rounded percentage of the subtotal, uncapped", () => {
+      const promo = makePromotion({ type: "flat", valueMode: "percentage", discountPercent: 15 });
+      // 15% of $100.03 = $15.0045 -> rounds to $15.00 (1500 cents), not floor/ceil.
+      expect(calculateDiscount(promo, oneItem, 10003).discountCents).toBe(1500);
+    });
+
+    it("flat-type: a cap binds before the final subtotal-safety clamp", () => {
+      const promo = makePromotion({
+        type: "flat",
+        valueMode: "percentage",
+        discountPercent: 20,
+        maxDiscountCents: 2500,
+      });
+      // 20% of $200.00 = $40.00, but capped at $25.00.
+      expect(calculateDiscount(promo, oneItem, 20000).discountCents).toBe(2500);
+    });
+
+    it("flat-type: with no cap set, applies the full uncapped percentage regardless of subtotal size (FR-006)", () => {
+      const promo = makePromotion({ type: "flat", valueMode: "percentage", discountPercent: 20 });
+      expect(calculateDiscount(promo, oneItem, 20000).discountCents).toBe(4000);
+      expect(calculateDiscount(promo, oneItem, 200000).discountCents).toBe(40000);
+    });
+
+    it("flat-type: 100% off reduces the discount to exactly the subtotal, never below zero", () => {
+      const promo = makePromotion({ type: "flat", valueMode: "percentage", discountPercent: 100 });
+      expect(calculateDiscount(promo, oneItem, 5000).discountCents).toBe(5000);
+    });
+
+    it("promo_code: a percentage promo code discounts the subtotal once its optional threshold is met", () => {
+      const promo = makePromotion({
+        type: "promo_code",
+        promoCode: "SAVE15",
+        valueMode: "percentage",
+        discountPercent: 15,
+        thresholdCents: 1000,
+      });
+      expect(calculateDiscount(promo, oneItem, 2000)).toEqual({
+        discountCents: 300,
+        freeShipping: false,
+        applicable: true,
+      });
+    });
+
+    it("cart_threshold ignores valueMode entirely and always computes a flat amount (FR-014)", () => {
+      const promo = makePromotion({
+        type: "cart_threshold",
+        valueMode: "percentage",
+        discountPercent: 50,
+        thresholdCents: 1000,
+        discountAmountCents: 300,
+      });
+      // If valueMode were consulted here this would be 1000 (50% of 2000), not 300.
+      expect(calculateDiscount(promo, oneItem, 2000).discountCents).toBe(300);
+    });
+  });
+});
+
+describe("validatePromoCode: percentage promo codes (US1)", () => {
+  const insertedPromotionIds: number[] = [];
+
+  afterEach(async () => {
+    for (const id of insertedPromotionIds.splice(0)) {
+      await db.delete(promotions).where(eq(promotions.id, id));
+    }
+  });
+
+  it("returns the exact expected percentage discount for a matching subtotal", async () => {
+    const code = `PCTTEST${Date.now()}`;
+    const [row] = await db
+      .insert(promotions)
+      .values({
+        type: "promo_code",
+        promoCode: code,
+        valueMode: "percentage",
+        discountPercent: 15,
+        active: true,
+      })
+      .returning({ id: promotions.id });
+    insertedPromotionIds.push(row.id);
+
+    const result = await validatePromoCode(code, oneItem, 10000);
+    expect(result).toEqual({ ok: true, promotion: expect.anything(), discountCents: 1500 });
+  });
+
+  it("rejects an inactive percentage promo code exactly like an inactive flat one", async () => {
+    const code = `PCTOFF${Date.now()}`;
+    const [row] = await db
+      .insert(promotions)
+      .values({
+        type: "promo_code",
+        promoCode: code,
+        valueMode: "percentage",
+        discountPercent: 15,
+        active: false,
+      })
+      .returning({ id: promotions.id });
+    insertedPromotionIds.push(row.id);
+
+    const result = await validatePromoCode(code, oneItem, 10000);
+    expect(result).toEqual({ ok: false, error: "inactive" });
+  });
+});
+
+describe("pickBestPromotion: best-value wins across mixed flat/percentage (US2, FR-009)", () => {
+  it("picks whichever automatic promotion is worth more for the given subtotal", () => {
+    const flatFive = makePromotion({ id: 1, type: "flat", valueMode: "flat", discountAmountCents: 500 });
+    const tenPercent = makePromotion({ id: 2, type: "flat", valueMode: "percentage", discountPercent: 10 });
+
+    // 10% of $80.00 = $8.00 > the flat $5.00 — percentage should win.
+    const highSubtotal = pickBestPromotion([flatFive, tenPercent], oneItem, 8000, 500);
+    expect(highSubtotal.discountCents).toBe(800);
+
+    // 10% of $30.00 = $3.00 < the flat $5.00 — flat should win.
+    const lowSubtotal = pickBestPromotion([flatFive, tenPercent], oneItem, 3000, 500);
+    expect(lowSubtotal.discountCents).toBe(500);
   });
 });
 
